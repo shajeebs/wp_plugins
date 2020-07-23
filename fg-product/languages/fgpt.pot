@@ -1,0 +1,167 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-26 17:32+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Description of the plugin
+msgid "This plugin to create custom contact list-tables from database using WP_List_Table class."
+msgstr ""
+
+#: fg-product.php:149
+msgid "Edit"
+msgstr ""
+
+#: fg-product.php:150
+msgid "Delete"
+msgstr ""
+
+#: fg-product.php:172
+msgid "Name"
+msgstr ""
+
+#: fg-product.php:173
+msgid "Last Name"
+msgstr ""
+
+#: fg-product.php:174
+msgid "E-Mail"
+msgstr ""
+
+#: fg-product.php:175 fg-product.php:179
+msgid "Phone"
+msgstr ""
+
+#: fg-product.php:176
+msgid "Company"
+msgstr ""
+
+#: fg-product.php:177
+msgid "Web"
+msgstr ""
+
+#: fg-product.php:178
+msgid "Email"
+msgstr ""
+
+#: fg-product.php:180
+msgid "Job Title"
+msgstr ""
+
+#: fg-product.php:260 fg-product.php:261 includes/metabox-product.php:17
+msgid "Contacts"
+msgstr ""
+
+#: fg-product.php:263 includes/metabox-product.php:18
+msgid "Add new"
+msgstr ""
+
+#: fg-product.php:273
+msgid "Name is required"
+msgstr ""
+
+#: fg-product.php:274
+msgid "Last Name is required"
+msgstr ""
+
+#: fg-product.php:275
+msgid "E-Mail is in wrong format"
+msgstr ""
+
+#: fg-product.php:276
+msgid "Phone can not be less than zero"
+msgstr ""
+
+#: fg-product.php:277
+msgid "Phone must be number"
+msgstr ""
+
+#: includes/metabox-product.php:11
+#, php-format
+msgid "Items deleted: %d"
+msgstr ""
+
+#: includes/metabox-product.php:67
+msgid "Item was successfully saved"
+msgstr ""
+
+#: includes/metabox-product.php:69
+msgid "There was an error while saving item"
+msgstr ""
+
+#: includes/metabox-product.php:74
+msgid "Item was successfully updated"
+msgstr ""
+
+#: includes/metabox-product.php:76
+msgid "There was an error while updating item"
+msgstr ""
+
+#: includes/metabox-product.php:91
+msgid "Item not found"
+msgstr ""
+
+#: includes/metabox-product.php:97
+msgid "Contact data"
+msgstr ""
+
+#: includes/metabox-product.php:102
+msgid "Contact"
+msgstr ""
+
+#: includes/metabox-product.php:103
+msgid "back to list"
+msgstr ""
+
+#: includes/metabox-product.php:123
+msgid "Save"
+msgstr ""
+
+#: includes/metabox-product.php:142
+msgid "Name:"
+msgstr ""
+
+#: includes/metabox-product.php:147
+msgid "Last Name:"
+msgstr ""
+
+#: includes/metabox-product.php:155 includes/metabox-product.php:178
+msgid "E-Mail:"
+msgstr ""
+
+#: includes/metabox-product.php:160 includes/metabox-product.php:182
+msgid "Phone:"
+msgstr ""
+
+#: includes/metabox-product.php:167
+msgid "Company:"
+msgstr ""
+
+#: includes/metabox-product.php:171
+msgid "Web:"
+msgstr ""
+
+#: includes/metabox-product.php:186
+msgid "Job Title:"
+msgstr ""
+
+#: includes/metabox-product.php:193
+msgid "Address:"
+msgstr ""
+
+#: includes/metabox-product.php:197
+msgid "Notes:"
+msgstr ""
