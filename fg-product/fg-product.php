@@ -17,12 +17,12 @@ require plugin_dir_path( __FILE__ ) . 'includes/metabox-product.php';
 
 function fgpt_custom_admin_styles() {
     wp_enqueue_style('custom-styles', plugins_url('/css/styles.css', __FILE__ ));
-	}
+}
 add_action('admin_enqueue_scripts', 'fgpt_custom_admin_styles');
 
 
 function fgpt_plugin_load_textdomain() {
-load_plugin_textdomain( 'fgpt', false, basename( dirname( __FILE__ ) ) . '/languages' ); 
+    load_plugin_textdomain( 'fgpt', false, basename( dirname( __FILE__ ) ) . '/languages' ); 
 }
 add_action( 'plugins_loaded', 'fgpt_plugin_load_textdomain' );
 

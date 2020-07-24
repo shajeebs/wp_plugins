@@ -41,12 +41,12 @@ function fgpt_products_form_page_handler()
     //     'id' => 0,
     //     'name'      => '',
     //     'lastname'  => '',
-    //     'email'     => '',
-    //     'phone'     => null,
-    //     'company'   => '',
+    //     'category_id'     => '',
+    //     'tax_cat_id'     => null,
+    //     'vendor'   => '',
     //     'web'       => '',  
-    //     'two_email' => '',   
-    //     'two_phone' => '',
+    //     'category_id' => '',   
+    //     'tax_cat_id' => '',
     //     'job'       => '',        
     //     'address'   => '',
     //     'notes'     => '',
@@ -149,66 +149,100 @@ function fgpt_products_form_meta_box_handler($item)
     <form >
 		<div class="form2bc">
         <p>			
-		    <label for="name"><?php _e('Name:', 'fgpt')?></label>
+		    <label for="name"><?php _e('Product Name:', 'fgpt')?></label>
 		<br>	
             <input id="name" name="name" type="text" value="<?php echo esc_attr($item['name'])?>"
                     required>
 		</p><p>	
-            <label for="lastname"><?php _e('Last Name:', 'fgpt')?></label>
+            <label for="product_type_id"><?php _e('Product Type:', 'fgpt')?></label>
 		<br>
-		    <input id="lastname" name="lastname" type="text" value="<?php echo esc_attr($item['lastname'])?>"
+		    <input id="product_type_id" name="product_type_id" type="text" value="<?php echo esc_attr($item['product_type_id'])?>"
                     required>
+                    <?php  
+                    $servicios_args = array(
+                        'show_option_all'    => '',
+                        'show_option_none'   => '',
+                        'option_none_value'  => '-1',
+                        'orderby'            => 'name',
+                        'order'              => 'ASC',
+                        'show_count'         => 0,
+                        'hide_empty'         => 0,
+                        'child_of'           => 0,
+                        'exclude'            => '',
+                        'include'            => '',
+                        'echo'               => 1,
+                        'selected'           => get_query_var($values['servicios_name']),
+                        'hierarchical'       => 0,
+                        'name'               => $values['servicios_name'],
+                        'id'                 => 'servicios_select',
+                        'class'              => 'postform',
+                        'depth'              => 0,
+                        'tab_index'          => 0,
+                        'taxonomy'           => 'servicio',
+                        'hide_if_empty'      => false,
+                        'value_field'	     => 'slug',
+                    );
+
+                wp_dropdown_categories( $servicios_args );
+                $dropdown_args = apply_filters( 'taxonomy_parent_dropdown_args', $dropdown_args, $taxonomy, 'new' );
+
+		wp_dropdown_categories( $dropdown_args );
+        $dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args );
+
+							wp_dropdown_pages( $dropdown_args );
+                    ?>
         </p>
 		</div>	
 		<div class="form2bc">
 			<p>
-            <label for="email"><?php _e('E-Mail:', 'fgpt')?></label> 
+            <label for="category_id"><?php _e('Category:', 'fgpt')?></label> 
 		<br>	
-            <input id="email" name="email" type="email" value="<?php echo esc_attr($item['email'])?>"
+            <input id="category_id" name="category_id" type="category_id" value="<?php echo esc_attr($item['category_id'])?>"
                    required>
         </p><p>	  
-            <label for="phone"><?php _e('Phone:', 'fgpt')?></label> 
+            <label for="tax_cat_id"><?php _e('Tax Category:', 'fgpt')?></label> 
 		<br>
-			<input id="phone" name="phone" type="tel" value="<?php echo esc_attr($item['phone'])?>">
+			<input id="tax_cat_id" name="tax_cat_id" type="tel" value="<?php echo esc_attr($item['tax_cat_id'])?>">
 		</p>
 		</div>
 		<div class="form2bc">
 			<p>
-            <label for="company"><?php _e('Company:', 'fgpt')?></label> 
+            <label for="vendor"><?php _e('vendor:', 'fgpt')?></label> 
 		<br>	
-            <input id="company" name="company" type="text" value="<?php echo esc_attr($item['company'])?>">
-        </p><p>	  
-            <label for="web"><?php _e('Web:', 'fgpt')?></label> 
+            <input id="vendor" name="vendor" type="text" value="<?php echo esc_attr($item['vendor'])?>">
+        </p>
+        <!--<p>	  
+            <label for="web">< ?php _e('Web:', 'fgpt')?></label> 
 		<br>
-			<input id="web" name="web" type="text" value="<?php echo esc_attr($item['web'])?>">
-		</p>
+			<input id="web" name="web" type="text" value="< ?php echo esc_attr($item['web'])?>">
+		</p>-->
 		</div>	
 		<div class="form3bc">
 		<p>
-            <label for="email"><?php _e('E-Mail:', 'fgpt')?></label> 
+            <label for="cost_price"><?php _e('Cost Price:', 'fgpt')?></label> 
 		<br>	
-            <input id="email" name="two_email" type="email" value="<?php echo esc_attr($item['two_email'])?>">
+            <input id="cost_price" name="cost_price" type="cost_price" value="<?php echo esc_attr($item['cost_price'])?>">
         </p><p>	  
-            <label for="phone"><?php _e('Phone:', 'fgpt')?></label> 
+            <label for="sale_price"><?php _e('Sale Price:', 'fgpt')?></label> 
 		<br>
-			<input id="phone" name="two_phone" type="tel" value="<?php echo esc_attr($item['two_phone'])?>">
+			<input id="sale_price" name="sale_price" type="tel" value="<?php echo esc_attr($item['sale_price'])?>">
 		</p><p>	  
-            <label for="job"><?php _e('Job Title:', 'fgpt')?></label> 
+            <label for="created_at"><?php _e('Created On:', 'fgpt')?></label> 
 		<br>
-			<input id="job" name="job" type="text" value="<?php echo esc_attr($item['job'])?>">
+			<input id="created_at" name="created_at" type="text" value="<?php echo esc_attr($item['created_at'])?>">
 		</p>		
 		</div>	
-		<div>		
+		<!--<div>		
 			<p>
-		    <label for="address"><?php _e('Address:', 'fgpt')?></label> 
+		    <label for="address">< ?php _e('Address:', 'fgpt')?></label> 
 		<br>
-            <textarea id="addressbc" name="address" cols="100" rows="3" maxlength="240"><?php echo esc_attr($item['address'])?></textarea>
+            <textarea id="addressbc" name="address" cols="100" rows="3" maxlength="240">< ?php echo esc_attr($item['address'])?></textarea>
 		</p><p>  
-            <label for="notes"><?php _e('Notes:', 'fgpt')?></label>
+            <label for="notes">< ?php _e('Notes:', 'fgpt')?></label>
 		<br>
-            <textarea id="notesbc" name="notes" cols="100" rows="3" maxlength="240"><?php echo esc_attr($item['notes'])?></textarea>
+            <textarea id="notesbc" name="notes" cols="100" rows="3" maxlength="240">< ?php echo esc_attr($item['notes'])?></textarea>
 		</p>
-		</div>	
+		</div>	-->
 		</form>
 		</div>
 </tbody>
