@@ -1,35 +1,6 @@
 <?php
-function fgpt_products_page_handler()
-{
-    global $wpdb;
 
-    $table = new Product_List_Table();
-    $table->prepare_items();
-
-    $message = '';
-    if ('delete' === $table->current_action()) {
-        $message = '<div class="updated below-h2" id="message"><p>' . sprintf(__('Items deleted: %d', 'fgpt'), count($_REQUEST['id'])) . '</p></div>';
-    }
-    ?>
-<div class="wrap">
-
-    <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-    <h2><?php _e('Products', 'fgpt')?> <a class="add-new-h2"
-                                 href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=products_form');?>"><?php _e('Add new', 'fgpt')?></a>
-    </h2>
-    <?php echo $message; ?>
-
-    <form id="products-table" method="POST">
-        <input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>"/>
-        <?php $table->display() ?>
-    </form>
-
-</div>
-<?php
-}
-
-
-function fgpt_products_form_page_handler()
+function fgpt_makeProductFormPage_handler()
 {
     global $wpdb;
     $table_name = $wpdb->prefix . 'erp_acct_products'; 
@@ -73,7 +44,6 @@ function fgpt_products_form_page_handler()
                 }
             }
         } else {
-            
             $notice = $item_valid;
         }
     }
@@ -88,14 +58,12 @@ function fgpt_products_form_page_handler()
             }
         }
     }
-
     
-    add_meta_box('products_form_meta_box', __('Product data', 'fgpt'), 'fgpt_products_form_meta_box_handler', 'product', 'normal', 'default');
-
+    add_meta_box('makeProductForm_metaBox', __('Makes row materials into finished products.', 'fgpt'), 'fgpt_MakeProductForm_MetaBoxHandler', 'product', 'normal', 'default');
     ?>
 <div class="wrap">
     <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-    <h2><?php _e('Product', 'fgpt')?> <a class="add-new-h2"
+    <h2><?php _e('Make Product', 'fgpt')?> <a class="add-new-h2"
                                 href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=products');?>"><?php _e('Back to list', 'fgpt')?></a>
     </h2>
 
@@ -125,17 +93,47 @@ function fgpt_products_form_page_handler()
 <?php
 }
 
-function fgpt_products_form_meta_box_handler($item)
+
+
+function fgpt_MakeProductForm_MetaBoxHandler($item)
 {
     $productListTable = new Product_List_Table();
+    $jsonData = $productListTable->getRowMaterials();
     $dropdownData = $productListTable->getData();
+    echo "<input type='hidden' id='rowMaterials' value='$jsonData'>";
     ?>
 <tbody >
-		
 	<div class="formdatabc">		
-		
-    <form >
-		<div class="form2bc">
+      <div>
+        <label for="productName"><?php _e('Row Product:', 'fgpt')?> </label><br>
+        <select id="productName" name="productName" />
+        <input type="decimal" id="costPrice" placeholder="Cost Price" >
+        <input type="decimal" id="salePrice" placeholder="Sale Price">
+        <input type="text" id="expDate" placeholder="Expiry Date">
+    	<input type="button" class="add-row" value="Add Row">
+      </div>
+        <table class="wp-list-table widefat fixed striped products">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Row Material</th>
+                    <th>Cost Price</th>
+                    <th>Sale Price</th>
+                    <th>Expiry Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan=5>
+                    
+                </td></tr>
+            </tbody>
+        </table>
+        <button type="button" class="delete-row">Delete Row</button><br>
+        
+    </div>
+    
+    <form>
+        <div class="form2bc">
         <p>			
 		    <label for="name"><?php _e('Product Name:', 'fgpt')?></label><br>	
             <input id="name" name="name" type="text" value="<?php echo esc_attr($item['name'])?>" required>
@@ -188,20 +186,23 @@ function fgpt_products_form_meta_box_handler($item)
             ?>
         </p>
 		</div>
-		<div class="form3bc">
+        <div class="form3bc">
 		<p>
-            <label for="cost_price"><?php _e('Cost Price:', 'fgpt')?></label><br>	
-            <input id="cost_price" name="cost_price" type="number" value="<?php echo esc_attr($item['cost_price'])?>" required>
+            <!--<label for="cost_price"><?php _e('Cost Price:', 'fgpt')?></label><br>	
+            <input id="cost_price" name="cost_price" type="number" value="<?php echo esc_attr($item['cost_price'])?>" required>-->
+            <label for="totalCost"><?php _e('Total Cost:', 'fgpt')?> </label><br>
+            <input type="number" id="totalCost" name="cost_price" placeholder="Total Cost Price" >
         </p><p>	  
-            <label for="sale_price"><?php _e('Sale Price:', 'fgpt')?></label><br>
-			<input id="sale_price" name="sale_price" type="number" value="<?php echo esc_attr($item['sale_price'])?>" required>
-		</p><p>	  
+            <!--<label for="sale_price"><?php _e('Sale Price:', 'fgpt')?></label><br>
+			<input id="sale_price" name="sale_price" type="number" value="<?php echo esc_attr($item['sale_price'])?>" required>-->
+            <label for="totalSales"><?php _e('Total Sales:', 'fgpt')?> </label><br>
+            <input type="number" id="totalSales" name="sale_price" placeholder="Total Sales Price" >
+        </p><p>	  
             <label for="created_at"><?php _e('Created On:', 'fgpt')?></label><br>
 			<input id="created_at" name="created_at" type="date" value="<?php echo esc_attr($item['created_at'])?>">
 		</p>		
 		</div>	
-		</form>
-		</div>
+    </form>
 </tbody>
 <?php
 }

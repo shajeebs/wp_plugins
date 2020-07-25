@@ -14,12 +14,22 @@
 defined( 'ABSPATH' ) or die( '¡Sin trampas!' );
 
 require plugin_dir_path( __FILE__ ) . 'includes/metabox-product.php';
+require plugin_dir_path( __FILE__ ) . 'includes/make-product.php';
 
 function fgpt_custom_admin_styles() {
     wp_enqueue_style('custom-styles', plugins_url('/css/styles.css', __FILE__ ));
 }
 add_action('admin_enqueue_scripts', 'fgpt_custom_admin_styles');
 
+function fgpt_custom_scripts() {
+    //wp_register_script('custom-scripts', plugins_url('/js/script.js', __FILE__ ), false, null, true);
+    wp_enqueue_script('custom-scripts', plugins_url('/js/script.js', __FILE__ ), false, null, true);
+    //wp_enqueue_script('custom-scripts', __FILE__ . "/js/script.js", array(), date('Ymd'), true );
+
+    // if(is_page('page-slug-here')){
+    //     wp_enqueue_script('my-nifty-custom'); 
+}
+add_action('admin_enqueue_scripts', 'fgpt_custom_scripts' );
 
 function fgpt_plugin_load_textdomain() {
     load_plugin_textdomain( 'fgpt', false, basename( dirname( __FILE__ ) ) . '/languages' ); 
@@ -170,10 +180,10 @@ class Product_List_Table extends WP_List_Table
         $columns = array(
             'cb' => '<input type="checkbox" />', 
             'name'      => __('Product', 'fgpt'),
-            'product_type_id'  => __('Product Type', 'fgpt'),
-            'category_id'     => __('Category', 'fgpt'),
-            'tax_cat_id'     => __('Tax Category', 'fgpt'),
-            'vendor'   => __('Vendor', 'fgpt'),
+            'product_type_name'  => __('Product Type', 'fgpt'),
+            'cat_name'     => __('Category', 'fgpt'),
+            //'tax_cat_id'     => __('Tax Category', 'fgpt'),
+            'vendor_name'   => __('Vendor', 'fgpt'),
             'cost_price'       => __('Cost Price', 'fgpt'),  
             'sale_price' => __('Sale Price', 'fgpt'),   
             'created_at'       => __('Created On', 'fgpt'),
@@ -185,10 +195,10 @@ class Product_List_Table extends WP_List_Table
     {
         $sortable_columns = array(
             'name'      => array('name', true),
-            'product_type_id'  => array('product_type_id', true),
-            'category_id'     => array('category_id', true),
-            'tax_cat_id'     => array('tax_cat_id', true),
-            'vendor'   => array('vendor', true),
+            'product_type_name'  => array('product_type_name', true),
+            'cat_name'     => array('cat_name', true),
+            //'tax_cat_id'     => array('tax_cat_id', true),
+            'vendor_name'   => array('vendor_name', true),
             'cost_price'       => array('cost_price', true),  
             'sale_price' => array('sale_price', true),   
             'created_at' => array('created_at', true),  
@@ -229,6 +239,21 @@ class Product_List_Table extends WP_List_Table
         $data = $server->response_to_data( $response, false );
         $json = wp_json_encode( $data );
         return $json;
+    }
+
+    function getRowMaterials(){
+        //$rowMaterials = [];
+        $per_page = 10;
+        $paged = 0;
+        global $wpdb;
+        $rowMaterials = $wpdb->get_results($wpdb->prepare("SELECT id, name, cost_price, 
+            sale_price, created_at, DATE_ADD(created_at, INTERVAL 10 DAY) as expiry_date 
+            FROM wp_erp_acct_products where product_type_id=3 
+            LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
+
+        $jsonVal =json_encode($rowMaterials);
+        //print_r($jsonVal);
+        return $jsonVal;
     }
 
     function getData(){
@@ -279,13 +304,19 @@ class Product_List_Table extends WP_List_Table
         $order = (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array('asc', 'desc'))) ? $_REQUEST['order'] : 'asc';
 
 
-        $this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
-        // require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
-        // $this->items = erp_acct_get_all_products();
-        // require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\api\class-rest-api-products.php');
-        // $this->items = get_inventory_products();
+        //$this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
+        $this->items = $wpdb->get_results($wpdb->prepare("SELECT product.id, product.name, 
+        product.product_type_id, product.cost_price, product.sale_price, product.tax_cat_id, 
+        people.id AS vendor, CONCAT(people.first_name, ' ', people.last_name) AS vendor_name, 
+        cat.id AS category_id, cat.name AS cat_name, product_type.name AS product_type_name, product.created_at 
+        FROM wp_erp_acct_products AS product 
+        LEFT JOIN wp_erp_peoples AS people ON product.vendor = people.id 
+        LEFT JOIN wp_erp_acct_product_categories AS cat ON product.category_id = cat.id 
+        LEFT JOIN wp_erp_acct_product_types AS product_type ON product.product_type_id = product_type.id 
+        ORDER BY $orderby $order 
+        LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
+        // WHERE product.product_type_id<>3 
         
-
         $this->set_pagination_args(array(
             'total_items' => $total_items, 
             'per_page' => $per_page,
@@ -300,6 +331,7 @@ function fgpt_admin_menu()
     add_submenu_page('products', __('Products', 'fgpt'), __('Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
    
     add_submenu_page('products', __('Add new', 'fgpt'), __('Add new', 'fgpt'), 'activate_plugins', 'products_form', 'fgpt_products_form_page_handler');
+    add_submenu_page('products', __('Make Product', 'fgpt'), __('Make Product', 'fgpt'), 'activate_plugins', 'make_product_form', 'fgpt_makeProductFormPage_handler');
 }
 
 add_action('admin_menu', 'fgpt_admin_menu');
