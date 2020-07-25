@@ -167,18 +167,6 @@ class Product_List_Table extends WP_List_Table
 
     function get_columns()
     {
-        /*$columns = array(
-            'cb' => '<input type="checkbox" />', 
-            'name'      => __('Name', 'fgpt'),
-            'lastname'  => __('Last Name', 'fgpt'),
-            'email'     => __('E-Mail', 'fgpt'),
-            'phone'     => __('Phone', 'fgpt'),
-            'company'   => __('Company', 'fgpt'),
-            'web'       => __('Web', 'fgpt'),  
-            'two_email' => __('Email', 'fgpt'),   
-            'two_phone' => __('Phone', 'fgpt'),  
-            'job'       => __('Job Title', 'fgpt'),
-        );*/
         $columns = array(
             'cb' => '<input type="checkbox" />', 
             'name'      => __('Product', 'fgpt'),
@@ -206,19 +194,7 @@ class Product_List_Table extends WP_List_Table
             'created_at' => array('created_at', true),  
             //'job'       => array('job', true),
         );
-        /*
-        $sortable_columns = array(
-            'name'      => array('name', true),
-            'lastname'  => array('lastname', true),
-            'email'     => array('email', true),
-            'phone'     => array('phone', true),
-            'company'   => array('company', true),
-            'web'       => array('web', true),  
-            'two_email' => array('two_email', true),   
-            'two_phone' => array('two_phone', true),  
-            'job'       => array('job', true),
-        );
-        */
+
         return $sortable_columns;
     }
 
@@ -245,6 +221,41 @@ class Product_List_Table extends WP_List_Table
         }
     }
 
+   function getJsonData($url){
+        $request = new WP_REST_Request( 'GET', $url);
+        $request->set_query_params( [ 'per_page' => 12 ] );
+        $response = rest_do_request( $request );
+        $server = rest_get_server();
+        $data = $server->response_to_data( $response, false );
+        $json = wp_json_encode( $data );
+        return $json;
+    }
+
+    function getData(){
+        $returnArray = [
+            'prodTypes' => [],
+            'prodCats' => [],
+            'taxCats'  => [],
+            'vendors'  => [],
+        ];
+
+        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
+        $returnArray['prodTypes'] = erp_acct_get_product_types();
+        
+        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\product-cats.php');
+        $returnArray['prodCats'] = erp_acct_get_all_product_cats();
+
+        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\tax-cats.php');
+        $returnArray['taxCats'] = erp_acct_get_all_tax_cats();
+
+        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\people.php');
+        $returnArray['vendors'] = erp_acct_get_accounting_people(
+            [ 'type' => 'vendor' ]
+        );
+        //print_r($returnArray);
+        return $returnArray;
+    }
+
     function prepare_items()
     {
         global $wpdb;
@@ -269,7 +280,11 @@ class Product_List_Table extends WP_List_Table
 
 
         $this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
-
+        // require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
+        // $this->items = erp_acct_get_all_products();
+        // require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\api\class-rest-api-products.php');
+        // $this->items = get_inventory_products();
+        
 
         $this->set_pagination_args(array(
             'total_items' => $total_items, 
@@ -295,10 +310,11 @@ function fgpt_validate_product($item)
     $messages = array();
 
     if (empty($item['name'])) $messages[] = __('Name is required', 'fgpt');
-    if (empty($item['lastname'])) $messages[] = __('Last Name is required', 'fgpt');
-    if (!empty($item['email']) && !is_email($item['email'])) $messages[] = __('E-Mail is in wrong format', 'fgpt');
-    if(!empty($item['phone']) && !absint(intval($item['phone'])))  $messages[] = __('Phone can not be less than zero');
-    if(!empty($item['phone']) && !preg_match('/[0-9]+/', $item['phone'])) $messages[] = __('Phone must be number');
+    //if (empty($item['cost_price'])) $messages[] = __('Last Name is required', 'fgpt');
+    //if (!empty($item['email']) && !is_email($item['email'])) $messages[] = __('E-Mail is in wrong format', 'fgpt');
+    //if(!empty($item['phone']) && !absint(intval($item['phone'])))  $messages[] = __('Phone can not be less than zero');
+    if(!empty($item['cost_price']) && floatval($item['cost_price']) == 0 && !preg_match('/[0-9]+/', $item['cost_price'])) $messages[] = __('Pleaes provide valid Cost Price');
+    if(!empty($item['sale_price']) && floatval($item['sale_price']) == 0 && !preg_match('/[0-9]+/', $item['sale_price'])) $messages[] = __('Pleaes provide valid Sale Price');
     
 
     if (empty($messages)) return true;

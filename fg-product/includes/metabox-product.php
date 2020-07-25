@@ -37,20 +37,6 @@ function fgpt_products_form_page_handler()
     $message = '';
     $notice = '';
 
-    // $default = array(
-    //     'id' => 0,
-    //     'name'      => '',
-    //     'lastname'  => '',
-    //     'category_id'     => '',
-    //     'tax_cat_id'     => null,
-    //     'vendor'   => '',
-    //     'web'       => '',  
-    //     'category_id' => '',   
-    //     'tax_cat_id' => '',
-    //     'job'       => '',        
-    //     'address'   => '',
-    //     'notes'     => '',
-    // );
     $default = array(
         'id'        => 0, 
         'name'      => '',
@@ -58,9 +44,9 @@ function fgpt_products_form_page_handler()
         'category_id'       => 1,
         'tax_cat_id'        => 1,
         'vendor'            => 1,
-        'cost_price'        => 0,  
-        'sale_price'        => 0,   
-        'created_at'        => '',
+        'cost_price'        => '',  
+        'sale_price'        => '',   
+        'created_at'        => date("Y-m-d"),
     );
 
 
@@ -141,6 +127,8 @@ function fgpt_products_form_page_handler()
 
 function fgpt_products_form_meta_box_handler($item)
 {
+    $productListTable = new Product_List_Table();
+    $dropdownData = $productListTable->getData();
     ?>
 <tbody >
 		
@@ -151,98 +139,75 @@ function fgpt_products_form_meta_box_handler($item)
         <p>			
 		    <label for="name"><?php _e('Product Name:', 'fgpt')?></label>
 		<br>	
-            <input id="name" name="name" type="text" value="<?php echo esc_attr($item['name'])?>"
-                    required>
+            <input id="name" name="name" type="text" value="<?php echo esc_attr($item['name'])?>" required>
 		</p><p>	
             <label for="product_type_id"><?php _e('Product Type:', 'fgpt')?></label>
 		<br>
-		    <input id="product_type_id" name="product_type_id" type="text" value="<?php echo esc_attr($item['product_type_id'])?>"
-                    required>
-                    <?php  
-                    $servicios_args = array(
-                        'show_option_all'    => '',
-                        'show_option_none'   => '',
-                        'option_none_value'  => '-1',
-                        'orderby'            => 'name',
-                        'order'              => 'ASC',
-                        'show_count'         => 0,
-                        'hide_empty'         => 0,
-                        'child_of'           => 0,
-                        'exclude'            => '',
-                        'include'            => '',
-                        'echo'               => 1,
-                        'selected'           => get_query_var($values['servicios_name']),
-                        'hierarchical'       => 0,
-                        'name'               => $values['servicios_name'],
-                        'id'                 => 'servicios_select',
-                        'class'              => 'postform',
-                        'depth'              => 0,
-                        'tab_index'          => 0,
-                        'taxonomy'           => 'servicio',
-                        'hide_if_empty'      => false,
-                        'value_field'	     => 'slug',
-                    );
-
-                wp_dropdown_categories( $servicios_args );
-                $dropdown_args = apply_filters( 'taxonomy_parent_dropdown_args', $dropdown_args, $taxonomy, 'new' );
-
-		wp_dropdown_categories( $dropdown_args );
-        $dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args );
-
-							wp_dropdown_pages( $dropdown_args );
-                    ?>
+            <?php $preItem = esc_attr($item['product_type_id']);
+             echo '<select name="product_type_id" name="product_type_id">';
+            foreach($dropdownData['prodTypes'] as $prodType){ 
+                $id = $prodType->id;
+                $prod = $prodType->name;
+                $selected = ($id == $preItem) ? 'selected=selected' : '';
+                echo "<option value='$id' $selected>$prod</option>";
+            } echo '</select>';?>
         </p>
 		</div>	
 		<div class="form2bc">
 			<p>
             <label for="category_id"><?php _e('Category:', 'fgpt')?></label> 
 		<br>	
-            <input id="category_id" name="category_id" type="category_id" value="<?php echo esc_attr($item['category_id'])?>"
-                   required>
+            <?php $preItem = esc_attr($item['category_id']);
+                echo '<select name="category_id" name="category_id">';
+                foreach($dropdownData['prodCats'] as $prodCat){ 
+                    $id = $prodCat['id'];
+                    $prod = $prodCat['name'];
+                    $selected = ($id == $preItem) ? 'selected=selected' : '';
+                    echo "<option value='$id' $selected>$prod</option>";
+                } echo '</select>'; 
+                ?>
         </p><p>	  
             <label for="tax_cat_id"><?php _e('Tax Category:', 'fgpt')?></label> 
 		<br>
-			<input id="tax_cat_id" name="tax_cat_id" type="tel" value="<?php echo esc_attr($item['tax_cat_id'])?>">
+            <?php $preItem = esc_attr($item['tax_cat_id']);
+            //print "Value - $preItem";
+            echo '<select name="tax_cat_id" name="tax_cat_id">';
+            foreach($dropdownData['taxCats'] as $taxCat){ 
+                $id = $taxCat['id'];
+                $tx = $taxCat['name'];
+                $selected = ($id == $preItem) ? 'selected=selected' : '';
+                echo "<option value='$id' $selected>$tx</option>";
+            } echo '</select>';?>
 		</p>
-		</div>
-		<div class="form2bc">
-			<p>
-            <label for="vendor"><?php _e('vendor:', 'fgpt')?></label> 
-		<br>	
-            <input id="vendor" name="vendor" type="text" value="<?php echo esc_attr($item['vendor'])?>">
+        <p>
+            <label for="vendor"><?php _e('Vendor:', 'fgpt')?></label> 
+		    <br>	
+            <?php $preItem = esc_attr($item['vendor']);
+             echo '<select name="vendor" name="vendor">';
+            foreach($dropdownData['vendors'] as $vendor){ 
+                $id = $vendor->id;
+                $vnd = $vendor->first_name.' '.$vendor->last_name;
+                $selected = ($id == $preItem) ? 'selected=selected' : '';
+                echo "<option value='$id' $selected>$vnd</option>";
+            } echo '</select>';
+            ?>
         </p>
-        <!--<p>	  
-            <label for="web">< ?php _e('Web:', 'fgpt')?></label> 
-		<br>
-			<input id="web" name="web" type="text" value="< ?php echo esc_attr($item['web'])?>">
-		</p>-->
-		</div>	
+		</div>
 		<div class="form3bc">
 		<p>
             <label for="cost_price"><?php _e('Cost Price:', 'fgpt')?></label> 
 		<br>	
-            <input id="cost_price" name="cost_price" type="cost_price" value="<?php echo esc_attr($item['cost_price'])?>">
+            <input id="cost_price" name="cost_price" type="number" value="<?php echo esc_attr($item['cost_price'])?>" required>
         </p><p>	  
             <label for="sale_price"><?php _e('Sale Price:', 'fgpt')?></label> 
 		<br>
-			<input id="sale_price" name="sale_price" type="tel" value="<?php echo esc_attr($item['sale_price'])?>">
+			<input id="sale_price" name="sale_price" type="number" value="<?php echo esc_attr($item['sale_price'])?>" required>
 		</p><p>	  
             <label for="created_at"><?php _e('Created On:', 'fgpt')?></label> 
 		<br>
-			<input id="created_at" name="created_at" type="text" value="<?php echo esc_attr($item['created_at'])?>">
+			<input id="created_at" name="created_at" type="date" value="<?php echo esc_attr($item['created_at'])?>">
 		</p>		
 		</div>	
-		<!--<div>		
-			<p>
-		    <label for="address">< ?php _e('Address:', 'fgpt')?></label> 
-		<br>
-            <textarea id="addressbc" name="address" cols="100" rows="3" maxlength="240">< ?php echo esc_attr($item['address'])?></textarea>
-		</p><p>  
-            <label for="notes">< ?php _e('Notes:', 'fgpt')?></label>
-		<br>
-            <textarea id="notesbc" name="notes" cols="100" rows="3" maxlength="240">< ?php echo esc_attr($item['notes'])?></textarea>
-		</p>
-		</div>	-->
 		</form>
 		</div>
 </tbody>
