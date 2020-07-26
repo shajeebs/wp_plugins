@@ -3,6 +3,9 @@
 function fgpt_makeProductFormPage_handler()
 {
     global $wpdb;
+    define("ROWMATERIAL_PRODUCT_TYPE_ID", 1);
+    define("ROWMATERIAL_CATEGORY_ID", 3);
+    define("ROWMATERIAL_TAX_CATEGORY_ID", 2);
     $table_name = $wpdb->prefix . 'erp_acct_products'; 
 
     $message = '';
@@ -96,7 +99,8 @@ function fgpt_makeProductFormPage_handler()
 
 
 function fgpt_MakeProductForm_MetaBoxHandler($item)
-{
+{ 
+
     $productListTable = new Product_List_Table();
     $jsonData = $productListTable->getRowMaterials();
     $dropdownData = $productListTable->getData();
@@ -123,9 +127,7 @@ function fgpt_MakeProductForm_MetaBoxHandler($item)
                 </tr>
             </thead>
             <tbody>
-                <tr><td colspan=5>
-                    
-                </td></tr>
+
             </tbody>
         </table>
         <button type="button" class="delete-row">Delete Row</button><br>
@@ -140,38 +142,30 @@ function fgpt_MakeProductForm_MetaBoxHandler($item)
 		</p><p>	
             <label for="product_type_id"><?php _e('Product Type:', 'fgpt')?></label><br>
             <?php $preItem = esc_attr($item['product_type_id']);
-             echo '<select name="product_type_id" name="product_type_id">';
-            foreach($dropdownData['prodTypes'] as $prodType){ 
-                $id = $prodType->id;
-                $prod = $prodType->name;
-                $selected = ($id == $preItem) ? 'selected=selected' : '';
-                echo "<option value='$id' $selected>$prod</option>";
-            } echo '</select>';?>
+            $elem = array_values(array_filter($dropdownData['prodTypes'], function($val){ return($val->id == ROWMATERIAL_PRODUCT_TYPE_ID); }))[0];
+            $selected = ($id == $preItem) ? 'selected=selected' : '';
+             echo "<select name='product_type_id' name='product_type_id'>
+             <option value='{$elem->id}' {$selected}>{$elem->name}</option></select>";
+            ?>
         </p>
 		</div>	
 		<div class="form2bc">
 			<p>
             <label for="category_id"><?php _e('Category:', 'fgpt')?></label><br>	
             <?php $preItem = esc_attr($item['category_id']);
-                echo '<select name="category_id" name="category_id">';
-                foreach($dropdownData['prodCats'] as $prodCat){ 
-                    $id = $prodCat['id'];
-                    $prod = $prodCat['name'];
-                    $selected = ($id == $preItem) ? 'selected=selected' : '';
-                    echo "<option value='$id' $selected>$prod</option>";
-                } echo '</select>'; 
+            $elem = array_values(array_filter($dropdownData['prodCats'], function($val){ return($val['id'] == ROWMATERIAL_CATEGORY_ID); }))[0];
+            $selected = ($id == $preItem) ? 'selected=selected' : '';
+             echo "<select name='category_id' name='category_id'>
+             <option value='{$elem['id']}' {$selected}>{$elem['name']}</option></select>";
                 ?>
         </p><p>	  
             <label for="tax_cat_id"><?php _e('Tax Category:', 'fgpt')?></label><br>
             <?php $preItem = esc_attr($item['tax_cat_id']);
-            //print "Value - $preItem";
-            echo '<select name="tax_cat_id" name="tax_cat_id">';
-            foreach($dropdownData['taxCats'] as $taxCat){ 
-                $id = $taxCat['id'];
-                $tx = $taxCat['name'];
-                $selected = ($id == $preItem) ? 'selected=selected' : '';
-                echo "<option value='$id' $selected>$tx</option>";
-            } echo '</select>';?>
+            $elem = array_values(array_filter($dropdownData['taxCats'], function($val){ return($val['id'] == ROWMATERIAL_TAX_CATEGORY_ID); }))[0];
+            $selected = ($id == $preItem) ? 'selected=selected' : '';
+             echo "<select name='tax_cat_id' name='tax_cat_id'>
+             <option value='{$elem['id']}' {$selected}>{$elem['name']}</option></select>";
+            ?>
 		</p>
         <p>
             <label for="vendor"><?php _e('Vendor:', 'fgpt')?></label><br>	
@@ -188,15 +182,11 @@ function fgpt_MakeProductForm_MetaBoxHandler($item)
 		</div>
         <div class="form3bc">
 		<p>
-            <!--<label for="cost_price"><?php _e('Cost Price:', 'fgpt')?></label><br>	
-            <input id="cost_price" name="cost_price" type="number" value="<?php echo esc_attr($item['cost_price'])?>" required>-->
             <label for="totalCost"><?php _e('Total Cost:', 'fgpt')?> </label><br>
-            <input type="number" id="totalCost" name="cost_price" placeholder="Total Cost Price" >
+            <input type="number" id="totalCost" name="cost_price" placeholder="Total Cost Price" required>
         </p><p>	  
-            <!--<label for="sale_price"><?php _e('Sale Price:', 'fgpt')?></label><br>
-			<input id="sale_price" name="sale_price" type="number" value="<?php echo esc_attr($item['sale_price'])?>" required>-->
             <label for="totalSales"><?php _e('Total Sales:', 'fgpt')?> </label><br>
-            <input type="number" id="totalSales" name="sale_price" placeholder="Total Sales Price" >
+            <input type="number" id="totalSales" name="sale_price" placeholder="Total Sales Price" required>
         </p><p>	  
             <label for="created_at"><?php _e('Created On:', 'fgpt')?></label><br>
 			<input id="created_at" name="created_at" type="date" value="<?php echo esc_attr($item['created_at'])?>">

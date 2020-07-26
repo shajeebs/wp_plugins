@@ -1,5 +1,6 @@
 jQuery(document).ready(function(){
         var jsonData = JSON.parse(jQuery("#rowMaterials").val());
+        jQuery("#product_type_id").prop("disabled", true);
         var selectionList = [];
         jQuery(jsonData).each(function() {
             jQuery("#productName").append(jQuery("<option />").val(this.id).text(this.name));
