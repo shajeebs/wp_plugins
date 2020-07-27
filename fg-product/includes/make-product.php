@@ -3,9 +3,6 @@
 function fgpt_makeProductFormPage_handler()
 {
     global $wpdb;
-    define("ROWMATERIAL_PRODUCT_TYPE_ID", 1);
-    define("ROWMATERIAL_CATEGORY_ID", 3);
-    define("ROWMATERIAL_TAX_CATEGORY_ID", 2);
     $table_name = $wpdb->prefix . 'erp_acct_products'; 
 
     $message = '';

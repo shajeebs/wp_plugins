@@ -11,7 +11,10 @@
 * Domain Path: /languages
 */
 
-defined( 'ABSPATH' ) or die( '¡Sin trampas!' );
+defined('ABSPATH') or die( '¡Sin trampas!' );
+define("ROWMATERIAL_PRODUCT_TYPE_ID", 1);
+define("ROWMATERIAL_CATEGORY_ID", 3);
+define("ROWMATERIAL_TAX_CATEGORY_ID", 2);
 
 require plugin_dir_path( __FILE__ ) . 'includes/metabox-product.php';
 require plugin_dir_path( __FILE__ ) . 'includes/make-product.php';
@@ -22,12 +25,7 @@ function fgpt_custom_admin_styles() {
 add_action('admin_enqueue_scripts', 'fgpt_custom_admin_styles');
 
 function fgpt_custom_scripts() {
-    //wp_register_script('custom-scripts', plugins_url('/js/script.js', __FILE__ ), false, null, true);
     wp_enqueue_script('custom-scripts', plugins_url('/js/script.js', __FILE__ ), false, null, true);
-    //wp_enqueue_script('custom-scripts', __FILE__ . "/js/script.js", array(), date('Ymd'), true );
-
-    // if(is_page('page-slug-here')){
-    //     wp_enqueue_script('my-nifty-custom'); 
 }
 add_action('admin_enqueue_scripts', 'fgpt_custom_scripts' );
 
@@ -202,7 +200,6 @@ class Product_List_Table extends WP_List_Table
             'cost_price'       => array('cost_price', true),  
             'sale_price' => array('sale_price', true),   
             'created_at' => array('created_at', true),  
-            //'job'       => array('job', true),
         );
 
         return $sortable_columns;
@@ -242,7 +239,6 @@ class Product_List_Table extends WP_List_Table
     }
 
     function getRowMaterials(){
-        //$rowMaterials = [];
         $per_page = 10;
         $paged = 0;
         global $wpdb;
@@ -252,7 +248,6 @@ class Product_List_Table extends WP_List_Table
             LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
 
         $jsonVal =json_encode($rowMaterials);
-        //print_r($jsonVal);
         return $jsonVal;
     }
 
@@ -313,9 +308,9 @@ class Product_List_Table extends WP_List_Table
         LEFT JOIN wp_erp_peoples AS people ON product.vendor = people.id 
         LEFT JOIN wp_erp_acct_product_categories AS cat ON product.category_id = cat.id 
         LEFT JOIN wp_erp_acct_product_types AS product_type ON product.product_type_id = product_type.id 
+        WHERE product.category_id = %d
         ORDER BY $orderby $order 
-        LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
-        // WHERE product.product_type_id<>3 
+        LIMIT %d OFFSET %d", ROWMATERIAL_CATEGORY_ID, $per_page, $paged), ARRAY_A);
         
         $this->set_pagination_args(array(
             'total_items' => $total_items, 
@@ -329,11 +324,9 @@ function fgpt_admin_menu()
 {
     add_menu_page(__('Products', 'fgpt'), __('Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
     add_submenu_page('products', __('Products', 'fgpt'), __('Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
-   
     add_submenu_page('products', __('Add new', 'fgpt'), __('Add new', 'fgpt'), 'activate_plugins', 'products_form', 'fgpt_products_form_page_handler');
     add_submenu_page('products', __('Make Product', 'fgpt'), __('Make Product', 'fgpt'), 'activate_plugins', 'make_product_form', 'fgpt_makeProductFormPage_handler');
 }
-
 add_action('admin_menu', 'fgpt_admin_menu');
 
 
