@@ -140,7 +140,7 @@ function fgpt_MakeProductForm_MetaBoxHandler($item)
             <label for="product_type_id"><?php _e('Product Type:', 'fgpt')?></label><br>
             <?php $preItem = esc_attr($item['product_type_id']);
             $elem = array_values(array_filter($dropdownData['prodTypes'], function($val){ return($val->id == ROWMATERIAL_PRODUCT_TYPE_ID); }))[0];
-            $selected = ($id == $preItem) ? 'selected=selected' : '';
+            $selected = ($elem->id == $preItem) ? 'selected=selected' : '';
              echo "<select name='product_type_id' name='product_type_id'>
              <option value='{$elem->id}' {$selected}>{$elem->name}</option></select>";
             ?>
@@ -151,7 +151,7 @@ function fgpt_MakeProductForm_MetaBoxHandler($item)
             <label for="category_id"><?php _e('Category:', 'fgpt')?></label><br>	
             <?php $preItem = esc_attr($item['category_id']);
             $elem = array_values(array_filter($dropdownData['prodCats'], function($val){ return($val['id'] == ROWMATERIAL_CATEGORY_ID); }))[0];
-            $selected = ($id == $preItem) ? 'selected=selected' : '';
+            $selected = ($elem['id'] == $preItem) ? 'selected=selected' : '';
              echo "<select name='category_id' name='category_id'>
              <option value='{$elem['id']}' {$selected}>{$elem['name']}</option></select>";
                 ?>
@@ -159,7 +159,7 @@ function fgpt_MakeProductForm_MetaBoxHandler($item)
             <label for="tax_cat_id"><?php _e('Tax Category:', 'fgpt')?></label><br>
             <?php $preItem = esc_attr($item['tax_cat_id']);
             $elem = array_values(array_filter($dropdownData['taxCats'], function($val){ return($val['id'] == ROWMATERIAL_TAX_CATEGORY_ID); }))[0];
-            $selected = ($id == $preItem) ? 'selected=selected' : '';
+            $selected = ($elem['id'] == $preItem) ? 'selected=selected' : '';
              echo "<select name='tax_cat_id' name='tax_cat_id'>
              <option value='{$elem['id']}' {$selected}>{$elem['name']}</option></select>";
             ?>
@@ -169,10 +169,10 @@ function fgpt_MakeProductForm_MetaBoxHandler($item)
             <?php $preItem = esc_attr($item['vendor']);
              echo '<select name="vendor" name="vendor">';
             foreach($dropdownData['vendors'] as $vendor){ 
-                $id = $vendor->id;
+                $vid = $vendor->id;
                 $vnd = $vendor->first_name.' '.$vendor->last_name;
-                $selected = ($id == $preItem) ? 'selected=selected' : '';
-                echo "<option value='$id' $selected>$vnd</option>";
+                $selected = ($vid == $preItem) ? 'selected=selected' : '';
+                echo "<option value='$vid' $selected>$vnd</option>";
             } echo '</select>';
             ?>
         </p>
