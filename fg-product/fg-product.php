@@ -18,6 +18,7 @@ define("ROWMATERIAL_TAX_CATEGORY_ID", 2);
 
 require plugin_dir_path( __FILE__ ) . 'includes/metabox-product.php';
 require plugin_dir_path( __FILE__ ) . 'includes/make-product.php';
+require plugin_dir_path( __FILE__ ) . 'includes/product-prop.php';
 
 function fgpt_custom_admin_styles() {
     wp_enqueue_style('custom-styles', plugins_url('/css/styles.css', __FILE__ ));
@@ -318,7 +319,63 @@ class Product_List_Table extends WP_List_Table
             'total_pages' => ceil($total_items / $per_page) 
         ));
     }
+}//class Product_List_Table END
+
+function fgpt_install()
+{
+    global $wpdb;
+    global $fgpt_db_version;
+
+    $table_name = $wpdb->prefix . 'erp_acct_products'; 
+    $table_name1 = $wpdb->prefix . 'fgpt_productproperties'; 
+
+    $sql = "CREATE TABLE IF NOT EXISTS $table_name1 (
+        id int(11) AUTO_INCREMENT PRIMARY KEY,
+        parent_prod_id     INT NOT NULL,
+        prod_id     INT NOT NULL,
+        cost_price decimal(20,2) NOT NULL,
+        sale_price	decimal(20,2) NOT NULL,
+        expiry_date date NOT NULL,
+        created_at date NOT NULL,
+        CONSTRAINT fk_prd_product_id
+        FOREIGN KEY (parent_prod_id) REFERENCES $table_name(id) ON DELETE CASCADE);";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+
 }
+register_activation_hook(__FILE__, 'fgpt_install');
+
+// function fgpt_add_product_properties()
+//     {
+//         global $wpdb;
+//         $table_name1 = $wpdb->prefix.'fgpt_productproperties';
+//         $last = $wpdb->get_row("SHOW TABLE STATUS LIKE 'wp_erp_acct_products'");
+//         $product_id = $last->Auto_increment;
+// print("Product Saved ID: $product_id<br>");
+//         if (isset($_POST['submit'])){
+// print("isset($ _POST request found<br>");
+//             print_r($_POST);
+// print("<br>");
+
+//         }
+
+//         $wpdb->insert($table_name1, array(
+//                 "product_id" => $product_id,
+//                 "cost_price" => 11,
+//                 "sale_price" => 22,
+//                 "expiry_date" => date( 'Y-m-d H:i:s' ),
+//                 "created_at" => date( 'Y-m-d H:i:s' )
+//                 ));
+// print("Product Properties Saved ID: {$wpdb->insert_id}");
+// print("<br>");
+
+//         $wpdb->query( 'COMMIT' );
+//     }
+// add_action('admin_post_nopriv_add_product_properties', 'fgpt_add_product_properties' );
+// add_action('admin_post_add_product_properties', 'fgpt_add_product_properties' );
+// // add_action( 'admin_post_nopriv_process_form', 'process_form_data' );
+// // add_action( 'admin_post_process_form', 'process_form_data' );
 
 function fgpt_admin_menu()
 {
@@ -326,6 +383,7 @@ function fgpt_admin_menu()
     add_submenu_page('products', __('Products', 'fgpt'), __('Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
     add_submenu_page('products', __('Add new', 'fgpt'), __('Add new', 'fgpt'), 'activate_plugins', 'products_form', 'fgpt_products_form_page_handler');
     add_submenu_page('products', __('Make Product', 'fgpt'), __('Make Product', 'fgpt'), 'activate_plugins', 'make_product_form', 'fgpt_makeProductFormPage_handler');
+    add_submenu_page('products', __('Product Properties', 'fgpt'), __('Product Properties', 'fgpt'), 'activate_plugins', 'product_prop_form', 'fgpt_productPropFormPage_handler');
 }
 add_action('admin_menu', 'fgpt_admin_menu');
 

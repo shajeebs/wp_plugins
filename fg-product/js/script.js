@@ -15,7 +15,7 @@ jQuery(document).ready(function(){
         jQuery(".add-row").click(function(){
             var datafilter = jsonData.filter(el => el.id ==jQuery("#productName").val())[0];
             selectionList.push(datafilter);
-            var markup = "<tr><td><input type='checkbox' name='record' value='" + datafilter.id + "'></td><td>" + datafilter.name + "</td><td>" + datafilter.cost_price + "</td><td>" + datafilter.sale_price + "</td><td>" + datafilter.expiry_date + "</td></tr>";
+            var markup = "<tr><td><input type='checkbox' name='pid' value='" + datafilter.id + "'/><input type='hidden' name='productIds[]' value='"+ datafilter.id +"' /></td><td>" + datafilter.name + "</td><td>" + datafilter.cost_price + "</td><td>" + datafilter.sale_price + "</td><td>" + datafilter.expiry_date + "</td></tr>";
             jQuery("table tbody").append(markup);
             UpdateCost();
         });
