@@ -128,9 +128,7 @@ function fgpt_MakeProductForm_Handler($item)
             </tbody>
         </table>
         <button type="button" class="delete-row">Delete Row</button><br>
-        
     </div>
-    
     <form>
         <div class="form2bc">
         <p>			

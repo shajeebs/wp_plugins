@@ -131,9 +131,7 @@ function fgpt_products_form_meta_box_handler($item)
     $dropdownData = $productListTable->getData();
     ?>
 <tbody >
-		
 	<div class="formdatabc">		
-		
     <form >
 		<div class="form2bc">
         <p>			
@@ -141,39 +139,31 @@ function fgpt_products_form_meta_box_handler($item)
             <input id="name" name="name" type="text" value="<?php echo esc_attr($item['name'])?>" required>
 		</p><p>	
             <label for="product_type_id"><?php _e('Product Type:', 'fgpt')?></label><br>
-            <?php $preItem = esc_attr($item['product_type_id']);
-             echo '<select name="product_type_id" name="product_type_id">';
-            foreach($dropdownData['prodTypes'] as $prodType){ 
-                $id = $prodType->id;
-                $prod = $prodType->name;
-                $selected = ($id == $preItem) ? 'selected=selected' : '';
-                echo "<option value='$id' $selected>$prod</option>";
-            } echo '</select>';?>
+             <?php $preItem = esc_attr($item['product_type_id']);
+            $elem = array_values(array_filter($dropdownData['prodTypes'], function($val){ return($val->id == ROWMATERIAL_PRODUCT_TYPE_ID); }))[0];
+            $selected = ($elem->id == $preItem) ? 'selected=selected' : '';
+             echo "<select name='product_type_id' name='product_type_id'>
+             <option value='{$elem->id}' {$selected}>{$elem->name}</option></select>";
+            ?>
         </p>
 		</div>	
 		<div class="form2bc">
 			<p>
             <label for="category_id"><?php _e('Category:', 'fgpt')?></label><br>	
             <?php $preItem = esc_attr($item['category_id']);
-                echo '<select name="category_id" name="category_id">';
-                foreach($dropdownData['prodCats'] as $prodCat){ 
-                    $id = $prodCat['id'];
-                    $prod = $prodCat['name'];
-                    $selected = ($id == $preItem) ? 'selected=selected' : '';
-                    echo "<option value='$id' $selected>$prod</option>";
-                } echo '</select>'; 
+            $elem = array_values(array_filter($dropdownData['prodCats'], function($val){ return($val['id'] == ROWMATERIAL_CATEGORY_ID); }))[0];
+            $selected = ($elem['id'] == $preItem) ? 'selected=selected' : '';
+             echo "<select name='category_id' name='category_id'>
+             <option value='{$elem['id']}' {$selected}>{$elem['name']}</option></select>";
                 ?>
         </p><p>	  
             <label for="tax_cat_id"><?php _e('Tax Category:', 'fgpt')?></label><br>
-            <?php $preItem = esc_attr($item['tax_cat_id']);
-            //print "Value - $preItem";
-            echo '<select name="tax_cat_id" name="tax_cat_id">';
-            foreach($dropdownData['taxCats'] as $taxCat){ 
-                $id = $taxCat['id'];
-                $tx = $taxCat['name'];
-                $selected = ($id == $preItem) ? 'selected=selected' : '';
-                echo "<option value='$id' $selected>$tx</option>";
-            } echo '</select>';?>
+             <?php $preItem = esc_attr($item['tax_cat_id']);
+            $elem = array_values(array_filter($dropdownData['taxCats'], function($val){ return($val['id'] == ROWMATERIAL_TAX_CATEGORY_ID); }))[0];
+            $selected = ($elem['id'] == $preItem) ? 'selected=selected' : '';
+             echo "<select name='tax_cat_id' name='tax_cat_id'>
+             <option value='{$elem['id']}' {$selected}>{$elem['name']}</option></select>";
+            ?>
 		</p>
         <p>
             <label for="vendor"><?php _e('Vendor:', 'fgpt')?></label><br>	

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+$(document).ready(function(){
+  $("#playall").click(function(){
+    readPlayList();
+  });
+});
+
+readPlayList = () => {
+  var playList = $("#playlist").val();
+  $.each(playList.split(/\n/), function (i, url) {  
+      $("#playcontainer").append('<iframe width="200" height="150" src="'+ 
+      getEmbedUrl(url) 
+      +'?autoplay=1&mute=1" frameborder="0" allowfullscreen=""></iframe>');
+  });
+}
+
+getEmbedUrl = (url) => {
+  const watchString = "watch?v=";
+  const shortUrl = "youtu.be/";
+  const baseUrl = "https://www.youtube.com/embed/";
+  
+  if(url.includes("embed")){
+    return url;
+  } else if(url.includes(watchString)){
+    var watchCode = url.substring(url.indexOf(watchString) + watchString.length, url.length).replace("&t=4s", "");
+    //watchCode.replace("&t=4s", "");
+    return baseUrl + watchCode;
+  } else if(url.includes(shortUrl)){
+    var watchCode = url.substring(url.indexOf(shortUrl) + shortUrl.length, url.length);
+    return baseUrl + watchCode;
+  } else {
+    var watchCode = url.substring(lastIndexOf("/") + "/".length, url.length);
+    return baseUrl + watchCode;
+  }
+}
+</script>
+</head>
+<body>
+  <textarea id="playlist" style="width:700px; height:200px;"></textarea>
+  <button id="playall">Play</button>
+  <div id="playcontainer">
+	
+   </div>
+</body>
+</html> 

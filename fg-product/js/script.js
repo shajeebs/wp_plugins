@@ -1,24 +1,30 @@
-jQuery(document).ready(function(){
-        var jsonData = JSON.parse(jQuery("#rowMaterials").val());
-        jQuery("#product_type_id").prop("disabled", true);
-        var selectionList = [];
-        jQuery(jsonData).each(function() {
-            jQuery("#productName").append(jQuery("<option />").val(this.id).text(this.name));
-        });
+// jQuery(document).ready(function(){
+//     // list Product Properties
 
-        jQuery("#productName").change(function () {
-            var datafilter = jsonData.filter(el => el.id == this.value)[0];
-            jQuery("#costPrice").val(datafilter.cost_price);
-            jQuery("#salePrice").val(datafilter.sale_price);
-            jQuery("#expDate").val(datafilter.expiry_date);
-        });
-        jQuery(".add-row").click(function(){
-            var datafilter = jsonData.filter(el => el.id ==jQuery("#productName").val())[0];
-            selectionList.push(datafilter);
-            var markup = "<tr><td><input type='checkbox' name='pid' value='" + datafilter.id + "'/><input type='hidden' name='productIds[]' value='"+ datafilter.id +"' /></td><td>" + datafilter.name + "</td><td>" + datafilter.cost_price + "</td><td>" + datafilter.sale_price + "</td><td>" + datafilter.expiry_date + "</td></tr>";
-            jQuery("table tbody").append(markup);
-            UpdateCost();
-        });
+// });
+jQuery(document).ready(function(){
+        if(jQuery('#rowMaterials').length){
+            var jsonData = JSON.parse(jQuery("#rowMaterials").val());
+            jQuery("#product_type_id").prop("disabled", true);
+            var selectionList = [];
+            jQuery(jsonData).each(function() {
+                jQuery("#productName").append(jQuery("<option />").val(this.id).text(this.name));
+            });
+
+            jQuery("#productName").change(function () {
+                var datafilter = jsonData.filter(el => el.id == this.value)[0];
+                jQuery("#costPrice").val(datafilter.cost_price);
+                jQuery("#salePrice").val(datafilter.sale_price);
+                jQuery("#expDate").val(datafilter.expiry_date);
+            });
+            jQuery(".add-row").click(function(){
+                var datafilter = jsonData.filter(el => el.id ==jQuery("#productName").val())[0];
+                selectionList.push(datafilter);
+                var markup = "<tr><td><input type='checkbox' name='pid' value='" + datafilter.id + "'/><input type='hidden' name='productIds[]' value='"+ datafilter.id +"' /></td><td>" + datafilter.name + "</td><td>" + datafilter.cost_price + "</td><td>" + datafilter.sale_price + "</td><td>" + datafilter.expiry_date + "</td></tr>";
+                jQuery("table tbody").append(markup);
+                UpdateCost();
+            });
+        }
         
         // Find and remove selected table rows
         jQuery(".delete-row").click(function(){
@@ -45,4 +51,18 @@ jQuery(document).ready(function(){
             });
             return total;
         }
+        jQuery("#productProps").change(function(){
+            if(this.value != '') {
+                var data = {'action': 'get_states_by_ajax','pid': this.value }
+    
+                jQuery.post("admin-ajax.php", data, function(response) {
+                    jQuery("#tbProdProps tbody").empty();
+                    jQuery.each(JSON.parse(response), function(i, prd) {
+                        //alert(item.name);
+                        var markup = "<tr><td>" + prd.name + "</td><td>" + prd.cost_price + "</td><td>" + prd.sale_price + "</td><td>" + prd.expiry_date + "</td></tr>";
+                        jQuery("#tbProdProps tbody").append(markup);
+                    });
+                });
+            }
+        });
     });    

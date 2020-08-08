@@ -12,13 +12,17 @@
 */
 
 defined('ABSPATH') or die( '¡Sin trampas!' );
-define("ROWMATERIAL_PRODUCT_TYPE_ID", 1);
+define("ROWMATERIAL_PRODUCT_TYPE_ID", 3);
 define("ROWMATERIAL_CATEGORY_ID", 3);
 define("ROWMATERIAL_TAX_CATEGORY_ID", 2);
+define("FP_PRODUCT_TYPE_ID", 1);
+define("FP_CATEGORY_ID", 2);
+define("FP_TAX_CATEGORY_ID", 2);
 
 require plugin_dir_path( __FILE__ ) . 'includes/metabox-product.php';
-require plugin_dir_path( __FILE__ ) . 'includes/make-product.php';
-require plugin_dir_path( __FILE__ ) . 'includes/product-prop.php';
+// require plugin_dir_path( __FILE__ ) . 'includes/make-product.php';
+require plugin_dir_path( __FILE__ ) . 'includes/add-product-prop.php';
+require plugin_dir_path( __FILE__ ) . 'includes/list-product-prop.php';
 
 function fgpt_custom_admin_styles() {
     wp_enqueue_style('custom-styles', plugins_url('/css/styles.css', __FILE__ ));
@@ -40,75 +44,7 @@ global $fgpt_db_version;
 $fgpt_db_version = '1.1.0'; 
 
 
-/*function fgpt_install()
-{
-    global $wpdb;
-    global $fgpt_db_version;
-
-    $table_name = $wpdb->prefix . 'erp_acct_products'; 
-
-
-    $sql = "CREATE TABLE " . $table_name . " (
-      id int(11) NOT NULL AUTO_INCREMENT,
-      name VARCHAR (50) NOT NULL,
-      lastname VARCHAR (100) NOT NULL,
-      email VARCHAR(100) NOT NULL,
-      phone VARCHAR(15) NULL,
-      company VARCHAR(100) NULL,
-      web VARCHAR(100) NULL,  
-      two_email VARCHAR(100) NULL,   
-      two_phone VARCHAR(15) NULL,  
-      job VARCHAR(100) NULL,
-      address VARCHAR (250) NULL,
-      notes VARCHAR (250) NULL,
-      PRIMARY KEY  (id)
-    );";
-
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($sql);
-
-    add_option('fgpt_db_version', $fgpt_db_version);
-
-    $installed_ver = get_option('fgpt_db_version');
-    if ($installed_ver != $fgpt_db_version) {
-        $sql = "CREATE TABLE " . $table_name . " (
-          id int(11) NOT NULL AUTO_INCREMENT,
-          name VARCHAR (50) NOT NULL,
-          lastname VARCHAR (100) NOT NULL,
-          email VARCHAR(100) NOT NULL,
-          phone VARCHAR(15) NULL,
-          company VARCHAR(100) NULL,
-          web VARCHAR(100) NULL,  
-          two_email VARCHAR(100) NULL,   
-          two_phone VARCHAR(15) NULL,  
-          job VARCHAR(100) NULL,          
-          address VARCHAR (250) NULL,
-          notes VARCHAR (250) NULL,
-          PRIMARY KEY  (id)
-        );";
-
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
-
-        update_option('fgpt_db_version', $fgpt_db_version);
-    }
-}
-
-register_activation_hook(__FILE__, 'fgpt_install');
-
-
-function fgpt_install_data()
-{
-    global $wpdb;
-
-    $table_name = $wpdb->prefix . 'erp_acct_products'; 
-
-}
-
-register_activation_hook(__FILE__, 'fgpt_install_data');
-
-
+/*
 function fgpt_update_db_check()
 {
     global $fgpt_db_version;
@@ -217,14 +153,14 @@ class Product_List_Table extends WP_List_Table
     function process_bulk_action()
     {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'erp_acct_products'; 
+        $table_Product = $wpdb->prefix . 'erp_acct_products'; 
 
         if ('delete' === $this->current_action()) {
             $ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
             if (is_array($ids)) $ids = implode(',', $ids);
 
             if (!empty($ids)) {
-                $wpdb->query("DELETE FROM $table_name WHERE id IN($ids)");
+                $wpdb->query("DELETE FROM $table_Product WHERE id IN($ids)");
             }
         }
     }
@@ -250,6 +186,19 @@ class Product_List_Table extends WP_List_Table
 
         $jsonVal =json_encode($rowMaterials);
         return $jsonVal;
+    }
+
+    function getFinishedProducts(){
+        $per_page = 10;
+        $paged = 0;
+        global $wpdb;
+        $products = $wpdb->get_results($wpdb->prepare("SELECT p.id, p.name, count(*) 
+            FROM wp_erp_acct_products as p 
+            INNER JOIN wp_fgpt_productproperties pp on p.id = pp.parent_prod_id
+            GROUP BY p.id, p.name HAVING count(*) > 0 
+            LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
+
+        return $products;
     }
 
     function getData(){
@@ -280,7 +229,7 @@ class Product_List_Table extends WP_List_Table
     function prepare_items()
     {
         global $wpdb;
-        $table_name = $wpdb->prefix . 'erp_acct_products'; 
+        $table_Product = $wpdb->prefix . 'erp_acct_products'; 
 
         $per_page = 10; 
 
@@ -292,7 +241,7 @@ class Product_List_Table extends WP_List_Table
        
         $this->process_bulk_action();
 
-        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_name");
+        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_Product");
 
 
         $paged = isset($_REQUEST['paged']) ? max(0, intval($_REQUEST['paged']) - 1) : 0;
@@ -300,7 +249,7 @@ class Product_List_Table extends WP_List_Table
         $order = (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array('asc', 'desc'))) ? $_REQUEST['order'] : 'asc';
 
 
-        //$this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
+        //$this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_Product ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
         $this->items = $wpdb->get_results($wpdb->prepare("SELECT product.id, product.name, 
         product.product_type_id, product.cost_price, product.sale_price, product.tax_cat_id, 
         people.id AS vendor, CONCAT(people.first_name, ' ', people.last_name) AS vendor_name, 
@@ -309,9 +258,9 @@ class Product_List_Table extends WP_List_Table
         LEFT JOIN wp_erp_peoples AS people ON product.vendor = people.id 
         LEFT JOIN wp_erp_acct_product_categories AS cat ON product.category_id = cat.id 
         LEFT JOIN wp_erp_acct_product_types AS product_type ON product.product_type_id = product_type.id 
-        WHERE product.category_id = %d
+        WHERE product.product_type_id = %d
         ORDER BY $orderby $order 
-        LIMIT %d OFFSET %d", ROWMATERIAL_CATEGORY_ID, $per_page, $paged), ARRAY_A);
+        LIMIT %d OFFSET %d", ROWMATERIAL_PRODUCT_TYPE_ID, $per_page, $paged), ARRAY_A);
         
         $this->set_pagination_args(array(
             'total_items' => $total_items, 
@@ -326,10 +275,12 @@ function fgpt_install()
     global $wpdb;
     global $fgpt_db_version;
 
-    $table_name = $wpdb->prefix . 'erp_acct_products'; 
-    $table_name1 = $wpdb->prefix . 'fgpt_productproperties'; 
+    $table_Product = $wpdb->prefix . 'erp_acct_products'; 
+    $table_ProductProp = $wpdb->prefix . 'fgpt_productproperties'; 
+    $table_ProductStock = $wpdb->prefix . 'fgpt_productstock'; 
 
-    $sql = "CREATE TABLE IF NOT EXISTS $table_name1 (
+    // Product Properties
+    $sql = "CREATE TABLE IF NOT EXISTS $table_ProductProp (
         id int(11) AUTO_INCREMENT PRIMARY KEY,
         parent_prod_id     INT NOT NULL,
         prod_id     INT NOT NULL,
@@ -338,52 +289,53 @@ function fgpt_install()
         expiry_date date NOT NULL,
         created_at date NOT NULL,
         CONSTRAINT fk_prd_product_id
-        FOREIGN KEY (parent_prod_id) REFERENCES $table_name(id) ON DELETE CASCADE);";
+        FOREIGN KEY (parent_prod_id) REFERENCES $table_Product(id) ON DELETE CASCADE);";
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql);
 
+    // Stock Details
+    $sql = "CREATE TABLE IF NOT EXISTS $table_ProductStock (
+        id int(11) AUTO_INCREMENT PRIMARY KEY,
+        prod_id     INT NOT NULL,
+        quantity INT NOT NULL,
+        updated_at date NULL,
+        created_at date NOT NULL,
+        CONSTRAINT fk_stock_product_id
+        FOREIGN KEY (prod_id) REFERENCES $table_Product(id) ON DELETE CASCADE);";
+
+    //require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
 }
 register_activation_hook(__FILE__, 'fgpt_install');
 
-// function fgpt_add_product_properties()
-//     {
-//         global $wpdb;
-//         $table_name1 = $wpdb->prefix.'fgpt_productproperties';
-//         $last = $wpdb->get_row("SHOW TABLE STATUS LIKE 'wp_erp_acct_products'");
-//         $product_id = $last->Auto_increment;
-// print("Product Saved ID: $product_id<br>");
-//         if (isset($_POST['submit'])){
-// print("isset($ _POST request found<br>");
-//             print_r($_POST);
-// print("<br>");
+function fgpt_install_data(){
+    global $wpdb;
+    $table_Product = $wpdb->prefix . 'erp_acct_products'; 
+    $table_ProductStock = $wpdb->prefix . 'fgpt_productstock';
+    $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_Product 
+     WHERE NOT EXISTS (SELECT `id` FROM $table_ProductStock) 
+     AND `product_type_id` in (%d, %d)", ROWMATERIAL_PRODUCT_TYPE_ID, FP_PRODUCT_TYPE_ID), ARRAY_A);
 
-//         }
+    foreach ($results as $val) {
+            $result = $wpdb->insert($table_ProductStock, array(
+                "prod_id" => $val['id'],
+                "quantity" => 3000,
+                "created_at" => date("Y-m-d")
+            ));
+    }
 
-//         $wpdb->insert($table_name1, array(
-//                 "product_id" => $product_id,
-//                 "cost_price" => 11,
-//                 "sale_price" => 22,
-//                 "expiry_date" => date( 'Y-m-d H:i:s' ),
-//                 "created_at" => date( 'Y-m-d H:i:s' )
-//                 ));
-// print("Product Properties Saved ID: {$wpdb->insert_id}");
-// print("<br>");
-
-//         $wpdb->query( 'COMMIT' );
-//     }
-// add_action('admin_post_nopriv_add_product_properties', 'fgpt_add_product_properties' );
-// add_action('admin_post_add_product_properties', 'fgpt_add_product_properties' );
-// // add_action( 'admin_post_nopriv_process_form', 'process_form_data' );
-// // add_action( 'admin_post_process_form', 'process_form_data' );
+}
+register_activation_hook(__FILE__, 'fgpt_install_data');
 
 function fgpt_admin_menu()
 {
-    add_menu_page(__('Products', 'fgpt'), __('Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
-    add_submenu_page('products', __('Products', 'fgpt'), __('Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
-    add_submenu_page('products', __('Add new', 'fgpt'), __('Add new', 'fgpt'), 'activate_plugins', 'products_form', 'fgpt_products_form_page_handler');
-    add_submenu_page('products', __('Make Product', 'fgpt'), __('Make Product', 'fgpt'), 'activate_plugins', 'make_product_form', 'fgpt_makeProductFormPage_handler');
-    add_submenu_page('products', __('Product Properties', 'fgpt'), __('Product Properties', 'fgpt'), 'activate_plugins', 'product_prop_form', 'fgpt_productPropFormPage_handler');
+    add_menu_page(__('Special Products', 'fgpt'), __('Special Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
+    add_submenu_page('products', __('Row Materials', 'fgpt'), __('Row Materials', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
+    add_submenu_page('products', __('New Raw Material', 'fgpt'), __('New Raw Material', 'fgpt'), 'activate_plugins', 'products_form', 'fgpt_products_form_page_handler');
+    // add_submenu_page('products', __('Make Product', 'fgpt'), __('Make Product', 'fgpt'), 'activate_plugins', 'make_product_form', 'fgpt_makeProductFormPage_handler');
+    add_submenu_page('products', __('Finished Products', 'fgpt'), __('Finished Products', 'fgpt'), 'activate_plugins', 'list_prop_form', 'fgpt_listProductProp_FormPage_handler');
+    add_submenu_page('products', __('New Finished Product', 'fgpt'), __('New Finished Product', 'fgpt'), 'activate_plugins', 'product_prop_form', 'fgpt_addProductProp_FormPage_handler');
 }
 add_action('admin_menu', 'fgpt_admin_menu');
 
@@ -409,5 +361,18 @@ function fgpt_languages()
 {
     load_plugin_textdomain('fgpt', false, dirname(plugin_basename(__FILE__)));
 }
-
 add_action('init', 'fgpt_languages');
+
+function get_states_by_ajax_callback() {
+    $pid = $_POST['pid'];
+    global $wpdb;
+    $results = $wpdb->get_results($wpdb->prepare("SELECT pprod.id, pprod.name, pp.cost_price, pp.sale_price, pp.expiry_date
+        FROM wp_erp_acct_products as p 
+        INNER JOIN wp_fgpt_productproperties pp on p.id = pp.parent_prod_id
+        INNER JOIN wp_erp_acct_products pprod on pprod.id = pp.prod_id
+        WHERE p.id = %d", $pid));
+    echo json_encode($results);
+    wp_die();
+}
+add_action('wp_ajax_get_states_by_ajax', 'get_states_by_ajax_callback');
+add_action('wp_ajax_nopriv_get_states_by_ajax', 'get_states_by_ajax_callback');

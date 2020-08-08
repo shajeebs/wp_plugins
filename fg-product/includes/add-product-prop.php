@@ -1,6 +1,6 @@
 <?php
 
-function fgpt_productPropFormPage_handler()
+function fgpt_addProductProp_FormPage_handler()
 {
     global $wpdb;
     $table_name = $wpdb->prefix . 'erp_acct_products'; 
@@ -35,13 +35,13 @@ function fgpt_productPropFormPage_handler()
                 $projProp = array();
                 $productListTable = new Product_List_Table();
                 $jsonData = $productListTable->getRowMaterials();
-                print("jsonData Array <br>");
+                //print("jsonData Array <br>");
                 $jsonData = json_decode($jsonData, true);
                 foreach ($_REQUEST['productIds'] as $pid) {
                     foreach ($jsonData as $key => $jsonVal) {
                         //print("<br>JSON: pid:". $value['id']."  -".$value['name']);
                         if($jsonVal['id'] == $pid){
-                            array_push($projProp, array(
+                            $result = $wpdb->insert($table_name1, array(
                                 "parent_prod_id" => $item['id'],
                                 "prod_id" => $jsonVal['id'],
                                 "cost_price" => $jsonVal['cost_price'],
@@ -53,13 +53,7 @@ function fgpt_productPropFormPage_handler()
                     }
                     
                 }
-                print("Final Array <br>");
-                print_r($projProp);
-                $result = $wpdb->insert($table_name1, $projProp);
-                // //$sql = "INSERT INTO $table_name1(product_id, cost_price, sale_price, expiry_date)  SELECT id as product_id, cost_price, sale_price, DATE_ADD(created_at, INTERVAL 10 DAY) as expiry_date FROM $table_name WHERE id in ($prodIds)";
-                    //  $sql = "INSERT INTO $table_name1(`product_id`, `cost_price`, `sale_price`, `expiry_date`)  SELECT `id` as `product_id`, `cost_price`, `sale_price`, DATE_ADD(`created_at`, INTERVAL 10 DAY) as `expiry_date`  FROM $table_name WHERE `id` in ($prodIds)";
-                    //print($sql);
-                // $result = $wpdb->insert($sql);
+
                 if ($result) 
                         $message = __('Product and properties was successfully saved', 'fgpt');
                     else 
@@ -91,7 +85,7 @@ function fgpt_productPropFormPage_handler()
         }
     }
     
-    add_meta_box('productPropForm_metaBox', __('Displays product properties.', 'fgpt'), 'fgpt_ProductProp_Handler', 'product_properties', 'normal', 'default');
+    add_meta_box('productPropForm_metaBox', __('Displays product properties.', 'fgpt'), 'fgpt_AddProductProp_Handler', 'product_properties', 'normal', 'default');
     ?>
 <div class="wrap">
     <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
@@ -128,7 +122,7 @@ function fgpt_productPropFormPage_handler()
 
 
 
-function fgpt_ProductProp_Handler($item)
+function fgpt_AddProductProp_Handler($item)
 { 
 
     $productListTable = new Product_List_Table();
@@ -160,7 +154,7 @@ function fgpt_ProductProp_Handler($item)
 		</p><p>	
             <label for="product_type_id"><?php _e('Product Type:', 'fgpt')?></label><br>
             <?php $preItem = esc_attr($item['product_type_id']);
-            $elem = array_values(array_filter($dropdownData['prodTypes'], function($val){ return($val->id == ROWMATERIAL_PRODUCT_TYPE_ID); }))[0];
+            $elem = array_values(array_filter($dropdownData['prodTypes'], function($val){ return($val->id == FP_PRODUCT_TYPE_ID); }))[0];
             $selected = ($elem->id == $preItem) ? 'selected=selected' : '';
              echo "<select name='product_type_id' name='product_type_id'>
              <option value='{$elem->id}' {$selected}>{$elem->name}</option></select>";
@@ -171,7 +165,7 @@ function fgpt_ProductProp_Handler($item)
 			<p>
             <label for="category_id"><?php _e('Category:', 'fgpt')?></label><br>	
             <?php $preItem = esc_attr($item['category_id']);
-            $elem = array_values(array_filter($dropdownData['prodCats'], function($val){ return($val['id'] == ROWMATERIAL_CATEGORY_ID); }))[0];
+            $elem = array_values(array_filter($dropdownData['prodCats'], function($val){ return($val['id'] == FP_CATEGORY_ID); }))[0];
             $selected = ($elem['id'] == $preItem) ? 'selected=selected' : '';
              echo "<select name='category_id' name='category_id'>
              <option value='{$elem['id']}' {$selected}>{$elem['name']}</option></select>";
@@ -179,7 +173,7 @@ function fgpt_ProductProp_Handler($item)
         </p><p>	  
             <label for="tax_cat_id"><?php _e('Tax Category:', 'fgpt')?></label><br>
             <?php $preItem = esc_attr($item['tax_cat_id']);
-            $elem = array_values(array_filter($dropdownData['taxCats'], function($val){ return($val['id'] == ROWMATERIAL_TAX_CATEGORY_ID); }))[0];
+            $elem = array_values(array_filter($dropdownData['taxCats'], function($val){ return($val['id'] == FP_TAX_CATEGORY_ID); }))[0];
             $selected = ($elem['id'] == $preItem) ? 'selected=selected' : '';
              echo "<select name='tax_cat_id' name='tax_cat_id'>
              <option value='{$elem['id']}' {$selected}>{$elem['name']}</option></select>";
