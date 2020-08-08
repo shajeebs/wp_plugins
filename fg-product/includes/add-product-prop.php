@@ -4,7 +4,7 @@ function fgpt_addProductProp_FormPage_handler()
 {
     global $wpdb;
     $table_name = $wpdb->prefix . 'erp_acct_products'; 
-    $table_name1 = $wpdb->prefix.'fgpt_productproperties';
+    $table_ProductPropeties = $wpdb->prefix.'fgpt_productproperties';
 
     $message = '';
     $notice = '';
@@ -41,7 +41,11 @@ function fgpt_addProductProp_FormPage_handler()
                     foreach ($jsonData as $key => $jsonVal) {
                         //print("<br>JSON: pid:". $value['id']."  -".$value['name']);
                         if($jsonVal['id'] == $pid){
-                            $result = $wpdb->insert($table_name1, array(
+                            $wpdb->query('START TRANSACTION');
+                            $stockQuantity = $wpdb->get_var("SELECT quantity FROM wp_fgpt_productstock WHERE prod_id = ".$jsonVal['id']);
+                            //print("Current Stock: $stockQuantity <br>");
+                            $stockQuantity = $stockQuantity - 1;
+                            $result = $wpdb->insert($table_ProductPropeties, array(
                                 "parent_prod_id" => $item['id'],
                                 "prod_id" => $jsonVal['id'],
                                 "cost_price" => $jsonVal['cost_price'],
@@ -49,6 +53,15 @@ function fgpt_addProductProp_FormPage_handler()
                                 "expiry_date" => $jsonVal['expiry_date'],
                                 "created_at" => date("Y-m-d")
                             ));
+                            //print("<br> Inserted properties: $result <br>");
+                            $updateResult = $wpdb->update("wp_fgpt_productstock", array('quantity'=> $stockQuantity), array('prod_id'=>$jsonVal['id']));
+                            //print("<br> Updated stock: $updateResult <br>");
+                            if($result && $updateResult) {
+                                $wpdb->query('COMMIT'); // if you come here then well done
+                            }
+                            else {
+                                $wpdb->query('ROLLBACK'); // // something went wrong, Rollback
+                            }
                         }
                     }
                     

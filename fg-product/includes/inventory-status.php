@@ -16,7 +16,7 @@ function fgpt_inventorystatus_page_handler()
         </select>
         <div class="load-state">
             <table id="tbProdTypes" class="wp-list-table widefat fixed striped products">
-                <thead><tr><th>Product</th><th>Type</th><th>Stock</th><th>Sale Price</th></tr></thead>
+                <thead><tr><th>Product</th><th>Type</th><th>Stock</th><th>Status</th></tr></thead>
                 <tbody></tbody>
             </table>
         </div>

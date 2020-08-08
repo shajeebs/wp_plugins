@@ -74,8 +74,11 @@ jQuery(document).ready(function(){
                     jQuery("#tbProdTypes tbody").empty();
                     jQuery.each(JSON.parse(response), function(i, prd) {
                         //alert(item.name);
-                        var markup = "<tr><td>" + prd.name + "</td><td>" + prd.product_type_name 
-                        + "</td><td>" + prd.stock + "</td><td>" + prd.sale_price + "</td></tr>";
+                        var stock = parseInt(prd.stock);
+                        var stockStatus = (stock > 0 ? "In Stock": "Out Of Stock");
+                        var rowStyle = (stock > 0 ? "inStock": "outOfStock");
+                        var markup = "<tr class='"+rowStyle+"'><td>" + prd.name + "</td><td>" + prd.product_type_name 
+                        + "</td><td>" + prd.stock + "</td><td>" + stockStatus + "</td></tr>";
                         jQuery("#tbProdTypes tbody").append(markup);
                     });
                 });

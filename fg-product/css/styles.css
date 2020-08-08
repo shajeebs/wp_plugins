@@ -33,3 +33,14 @@ div.form3bc input {
   color: white;
   height: 2px;
 }
+
+tr.outOfStock td {
+    border: 1px solid #dde833;
+    color: red;
+    font-weight:bold;
+}
+
+tr.inStock  td {
+    color: green;
+    font-weight:normal;
+}
