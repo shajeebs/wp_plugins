@@ -1,7 +1,3 @@
-// jQuery(document).ready(function(){
-//     // list Product Properties
-
-// });
 jQuery(document).ready(function(){
         if(jQuery('#rowMaterials').length){
             var jsonData = JSON.parse(jQuery("#rowMaterials").val());
@@ -51,10 +47,11 @@ jQuery(document).ready(function(){
             });
             return total;
         }
+
+        // START - list-product-prop.php 
         jQuery("#productProps").change(function(){
             if(this.value != '') {
-                var data = {'action': 'get_states_by_ajax','pid': this.value }
-    
+                var data = {'action': 'get_products_ajax','pid': this.value }
                 jQuery.post("admin-ajax.php", data, function(response) {
                     jQuery("#tbProdProps tbody").empty();
                     jQuery.each(JSON.parse(response), function(i, prd) {
@@ -65,4 +62,24 @@ jQuery(document).ready(function(){
                 });
             }
         });
+        // END - list-product-prop.php 
+
+
+        // START - inventory-status.php 
+        jQuery("#productTypes").change(function(){
+            if(this.value != '') {
+                var data = {'action': 'get_producttypes_ajax','typeid': this.value }
+                jQuery.post("admin-ajax.php", data, function(response) {
+                    //alert(response);
+                    jQuery("#tbProdTypes tbody").empty();
+                    jQuery.each(JSON.parse(response), function(i, prd) {
+                        //alert(item.name);
+                        var markup = "<tr><td>" + prd.name + "</td><td>" + prd.product_type_name 
+                        + "</td><td>" + prd.stock + "</td><td>" + prd.sale_price + "</td></tr>";
+                        jQuery("#tbProdTypes tbody").append(markup);
+                    });
+                });
+            }
+        });
+        // END - inventory-status.php 
     });    

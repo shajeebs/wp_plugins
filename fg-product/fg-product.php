@@ -23,6 +23,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/metabox-product.php';
 // require plugin_dir_path( __FILE__ ) . 'includes/make-product.php';
 require plugin_dir_path( __FILE__ ) . 'includes/add-product-prop.php';
 require plugin_dir_path( __FILE__ ) . 'includes/list-product-prop.php';
+require plugin_dir_path( __FILE__ ) . 'includes/inventory-status.php';
 
 function fgpt_custom_admin_styles() {
     wp_enqueue_style('custom-styles', plugins_url('/css/styles.css', __FILE__ ));
@@ -42,233 +43,6 @@ add_action( 'plugins_loaded', 'fgpt_plugin_load_textdomain' );
 
 global $fgpt_db_version;
 $fgpt_db_version = '1.1.0'; 
-
-
-/*
-function fgpt_update_db_check()
-{
-    global $fgpt_db_version;
-    if (get_site_option('fgpt_db_version') != $fgpt_db_version) {
-        fgpt_install();
-    }
-}
-
-add_action('plugins_loaded', 'fgpt_update_db_check');
-*/
-
-
-if (!class_exists('WP_List_Table')) {
-    require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
-}
-
-
-class Product_List_Table extends WP_List_Table
- { 
-    function __construct()
-    {
-        global $status, $page;
-
-        parent::__construct(array(
-            'singular' => 'product',
-            'plural'   => 'products',
-        ));
-    }
-
-
-    function column_default($item, $column_name)
-    {
-        return $item[$column_name];
-    }
-
-
-    function column_phone($item)
-    {
-        return '<em>' . $item['phone'] . '</em>';
-    }
-
-
-    function column_name($item)
-    {
-
-        $actions = array(
-            'edit' => sprintf('<a href="?page=products_form&id=%s">%s</a>', $item['id'], __('Edit', 'fgpt')),
-            'delete' => sprintf('<a href="?page=%s&action=delete&id=%s">%s</a>', $_REQUEST['page'], $item['id'], __('Delete', 'fgpt')),
-        );
-
-        return sprintf('%s %s',
-            $item['name'],
-            $this->row_actions($actions)
-        );
-    }
-
-
-    function column_cb($item)
-    {
-        return sprintf(
-            '<input type="checkbox" name="id[]" value="%s" />',
-            $item['id']
-        );
-    }
-
-    function get_columns()
-    {
-        $columns = array(
-            'cb' => '<input type="checkbox" />', 
-            'name'      => __('Product', 'fgpt'),
-            'product_type_name'  => __('Product Type', 'fgpt'),
-            'cat_name'     => __('Category', 'fgpt'),
-            //'tax_cat_id'     => __('Tax Category', 'fgpt'),
-            'vendor_name'   => __('Vendor', 'fgpt'),
-            'cost_price'       => __('Cost Price', 'fgpt'),  
-            'sale_price' => __('Sale Price', 'fgpt'),   
-            'created_at'       => __('Created On', 'fgpt'),
-        );
-        return $columns;
-    }
-
-    function get_sortable_columns()
-    {
-        $sortable_columns = array(
-            'name'      => array('name', true),
-            'product_type_name'  => array('product_type_name', true),
-            'cat_name'     => array('cat_name', true),
-            //'tax_cat_id'     => array('tax_cat_id', true),
-            'vendor_name'   => array('vendor_name', true),
-            'cost_price'       => array('cost_price', true),  
-            'sale_price' => array('sale_price', true),   
-            'created_at' => array('created_at', true),  
-        );
-
-        return $sortable_columns;
-    }
-
-    function get_bulk_actions()
-    {
-        $actions = array(
-            'delete' => 'Delete'
-        );
-        return $actions;
-    }
-
-    function process_bulk_action()
-    {
-        global $wpdb;
-        $table_Product = $wpdb->prefix . 'erp_acct_products'; 
-
-        if ('delete' === $this->current_action()) {
-            $ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
-            if (is_array($ids)) $ids = implode(',', $ids);
-
-            if (!empty($ids)) {
-                $wpdb->query("DELETE FROM $table_Product WHERE id IN($ids)");
-            }
-        }
-    }
-
-   function getJsonData($url){
-        $request = new WP_REST_Request( 'GET', $url);
-        $request->set_query_params( [ 'per_page' => 12 ] );
-        $response = rest_do_request( $request );
-        $server = rest_get_server();
-        $data = $server->response_to_data( $response, false );
-        $json = wp_json_encode( $data );
-        return $json;
-    }
-
-    function getRowMaterials(){
-        $per_page = 10;
-        $paged = 0;
-        global $wpdb;
-        $rowMaterials = $wpdb->get_results($wpdb->prepare("SELECT id, name, cost_price, 
-            sale_price, created_at, DATE_ADD(created_at, INTERVAL 10 DAY) as expiry_date 
-            FROM wp_erp_acct_products where product_type_id=3 
-            LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
-
-        $jsonVal =json_encode($rowMaterials);
-        return $jsonVal;
-    }
-
-    function getFinishedProducts(){
-        $per_page = 10;
-        $paged = 0;
-        global $wpdb;
-        $products = $wpdb->get_results($wpdb->prepare("SELECT p.id, p.name, count(*) 
-            FROM wp_erp_acct_products as p 
-            INNER JOIN wp_fgpt_productproperties pp on p.id = pp.parent_prod_id
-            GROUP BY p.id, p.name HAVING count(*) > 0 
-            LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
-
-        return $products;
-    }
-
-    function getData(){
-        $returnArray = [
-            'prodTypes' => [],
-            'prodCats' => [],
-            'taxCats'  => [],
-            'vendors'  => [],
-        ];
-
-        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
-        $returnArray['prodTypes'] = erp_acct_get_product_types();
-        
-        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\product-cats.php');
-        $returnArray['prodCats'] = erp_acct_get_all_product_cats();
-
-        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\tax-cats.php');
-        $returnArray['taxCats'] = erp_acct_get_all_tax_cats();
-
-        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\people.php');
-        $returnArray['vendors'] = erp_acct_get_accounting_people(
-            [ 'type' => 'vendor' ]
-        );
-        //print_r($returnArray);
-        return $returnArray;
-    }
-
-    function prepare_items()
-    {
-        global $wpdb;
-        $table_Product = $wpdb->prefix . 'erp_acct_products'; 
-
-        $per_page = 10; 
-
-        $columns = $this->get_columns();
-        $hidden = array();
-        $sortable = $this->get_sortable_columns();
-        
-        $this->_column_headers = array($columns, $hidden, $sortable);
-       
-        $this->process_bulk_action();
-
-        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_Product");
-
-
-        $paged = isset($_REQUEST['paged']) ? max(0, intval($_REQUEST['paged']) - 1) : 0;
-        $orderby = (isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns()))) ? $_REQUEST['orderby'] : 'name';
-        $order = (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array('asc', 'desc'))) ? $_REQUEST['order'] : 'asc';
-
-
-        //$this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_Product ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
-        $this->items = $wpdb->get_results($wpdb->prepare("SELECT product.id, product.name, 
-        product.product_type_id, product.cost_price, product.sale_price, product.tax_cat_id, 
-        people.id AS vendor, CONCAT(people.first_name, ' ', people.last_name) AS vendor_name, 
-        cat.id AS category_id, cat.name AS cat_name, product_type.name AS product_type_name, product.created_at 
-        FROM wp_erp_acct_products AS product 
-        LEFT JOIN wp_erp_peoples AS people ON product.vendor = people.id 
-        LEFT JOIN wp_erp_acct_product_categories AS cat ON product.category_id = cat.id 
-        LEFT JOIN wp_erp_acct_product_types AS product_type ON product.product_type_id = product_type.id 
-        WHERE product.product_type_id = %d
-        ORDER BY $orderby $order 
-        LIMIT %d OFFSET %d", ROWMATERIAL_PRODUCT_TYPE_ID, $per_page, $paged), ARRAY_A);
-        
-        $this->set_pagination_args(array(
-            'total_items' => $total_items, 
-            'per_page' => $per_page,
-            'total_pages' => ceil($total_items / $per_page) 
-        ));
-    }
-}//class Product_List_Table END
 
 function fgpt_install()
 {
@@ -330,15 +104,253 @@ register_activation_hook(__FILE__, 'fgpt_install_data');
 
 function fgpt_admin_menu()
 {
-    add_menu_page(__('Special Products', 'fgpt'), __('Special Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
-    add_submenu_page('products', __('Row Materials', 'fgpt'), __('Row Materials', 'fgpt'), 'activate_plugins', 'products', 'fgpt_products_page_handler');
+    add_menu_page(__('Special Products', 'fgpt'), __('Special Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_rawmaterials_page_handler');
+    add_submenu_page('products', __('Row Materials', 'fgpt'), __('Row Materials', 'fgpt'), 'activate_plugins', 'products', 'fgpt_rawmaterials_page_handler');
     add_submenu_page('products', __('New Raw Material', 'fgpt'), __('New Raw Material', 'fgpt'), 'activate_plugins', 'products_form', 'fgpt_products_form_page_handler');
+    add_submenu_page('products', __('Inventory Status', 'fgpt'), __('Inventory Status', 'fgpt'), 'activate_plugins', 'Inventory Status', 'fgpt_inventorystatus_page_handler');
     // add_submenu_page('products', __('Make Product', 'fgpt'), __('Make Product', 'fgpt'), 'activate_plugins', 'make_product_form', 'fgpt_makeProductFormPage_handler');
     add_submenu_page('products', __('Finished Products', 'fgpt'), __('Finished Products', 'fgpt'), 'activate_plugins', 'list_prop_form', 'fgpt_listProductProp_FormPage_handler');
     add_submenu_page('products', __('New Finished Product', 'fgpt'), __('New Finished Product', 'fgpt'), 'activate_plugins', 'product_prop_form', 'fgpt_addProductProp_FormPage_handler');
 }
 add_action('admin_menu', 'fgpt_admin_menu');
 
+/*
+function fgpt_update_db_check()
+{
+    global $fgpt_db_version;
+    if (get_site_option('fgpt_db_version') != $fgpt_db_version) {
+        fgpt_install();
+    }
+}
+
+add_action('plugins_loaded', 'fgpt_update_db_check');
+*/
+
+
+if (!class_exists('WP_List_Table')) {
+    require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
+}
+
+class Product_List_Table extends WP_List_Table
+ { 
+    function __construct()
+    {
+        global $status, $page;
+
+        parent::__construct(array(
+            'singular' => 'product',
+            'plural'   => 'products',
+        ));
+    }
+
+    function column_default($item, $column_name)
+    {
+        return $item[$column_name];
+    }
+
+
+    function column_phone($item)
+    {
+        return '<em>' . $item['phone'] . '</em>';
+    }
+
+
+    function column_name($item)
+    {
+
+        $actions = array(
+            'edit' => sprintf('<a href="?page=products_form&id=%s">%s</a>', $item['id'], __('Edit', 'fgpt')),
+            'delete' => sprintf('<a href="?page=%s&action=delete&id=%s">%s</a>', $_REQUEST['page'], $item['id'], __('Delete', 'fgpt')),
+        );
+
+        return sprintf('%s %s',
+            $item['name'],
+            $this->row_actions($actions)
+        );
+    }
+
+
+    function column_cb($item)
+    {
+        return sprintf(
+            '<input type="checkbox" name="id[]" value="%s" />',
+            $item['id']
+        );
+    }
+
+    function get_columns()
+    {
+        $columns = array(
+            'cb' => '<input type="checkbox" />', 
+            'name'      => __('Product', 'fgpt'),
+            'product_type_name'  => __('Product Type', 'fgpt'),
+            'stock'     => __('Stock', 'fgpt'),
+            // 'cat_name'     => __('Category', 'fgpt'),
+            // //'tax_cat_id'     => __('Tax Category', 'fgpt'),
+            // 'vendor_name'   => __('Vendor', 'fgpt'),
+            'cost_price'       => __('Cost Price', 'fgpt'),  
+            'sale_price' => __('Sale Price', 'fgpt'),   
+            'created_at'       => __('Created On', 'fgpt'),
+        );
+        return $columns;
+    }
+
+    function get_sortable_columns()
+    {
+        $sortable_columns = array(
+            'name'      => array('name', true),
+            'product_type_name'  => array('product_type_name', true),
+            'stock'     => array('stock', true),
+            // 'cat_name'     => array('cat_name', true),
+            // //'tax_cat_id'     => array('tax_cat_id', true),
+            // 'vendor_name'   => array('vendor_name', true),
+            'cost_price'       => array('cost_price', true),  
+            'sale_price' => array('sale_price', true),   
+            'created_at' => array('created_at', true),  
+        );
+
+        return $sortable_columns;
+    }
+
+    function get_bulk_actions()
+    {
+        $actions = array(
+            'delete' => 'Delete'
+        );
+        return $actions;
+    }
+
+    function process_bulk_action()
+    {
+        global $wpdb;
+        $table_Product = $wpdb->prefix . 'erp_acct_products'; 
+
+        if ('delete' === $this->current_action()) {
+            $ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
+            if (is_array($ids)) $ids = implode(',', $ids);
+
+            if (!empty($ids)) {
+                $wpdb->query("DELETE FROM $table_Product WHERE id IN($ids)");
+            }
+        }
+    }
+
+   function getJsonData($url){
+        $request = new WP_REST_Request( 'GET', $url);
+        $request->set_query_params( [ 'per_page' => 12 ] );
+        $response = rest_do_request( $request );
+        $server = rest_get_server();
+        $data = $server->response_to_data( $response, false );
+        $json = wp_json_encode( $data );
+        return $json;
+    }
+
+    function getRowMaterials(){
+        $per_page = 10;
+        $paged = 0;
+        global $wpdb;
+        $rowMaterials = $wpdb->get_results($wpdb->prepare("SELECT id, name, cost_price, 
+            sale_price, created_at, DATE_ADD(created_at, INTERVAL 10 DAY) as expiry_date 
+            FROM wp_erp_acct_products where product_type_id=3 
+            LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
+
+        $jsonVal =json_encode($rowMaterials);
+        return $jsonVal;
+    }
+
+    // START - list-product-prop.php 
+    function getFinishedProducts(){
+        $per_page = 10;
+        $paged = 0;
+        global $wpdb;
+        $products = $wpdb->get_results($wpdb->prepare("SELECT p.id, p.name, count(*) 
+            FROM wp_erp_acct_products as p 
+            INNER JOIN wp_fgpt_productproperties pp on p.id = pp.parent_prod_id
+            GROUP BY p.id, p.name HAVING count(*) > 0 
+            LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
+
+        return $products;
+    }// END - list-product-prop.php 
+
+    // START - inventory-status.php 
+    function getProductTypes(){
+        global $wpdb;
+        $productTypes = $wpdb->get_results($wpdb->prepare("SELECT `id`, `name` FROM `wp_erp_acct_product_types`LIMIT %d OFFSET %d", 10, 0), ARRAY_A);
+        return $productTypes;
+    }// END - inventory-status.php 
+
+    function getData(){
+        $returnArray = [
+            'prodTypes' => [],
+            'prodCats' => [],
+            'taxCats'  => [],
+            'vendors'  => [],
+        ];
+
+        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
+        $returnArray['prodTypes'] = erp_acct_get_product_types();
+        
+        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\product-cats.php');
+        $returnArray['prodCats'] = erp_acct_get_all_product_cats();
+
+        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\tax-cats.php');
+        $returnArray['taxCats'] = erp_acct_get_all_tax_cats();
+
+        require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\people.php');
+        $returnArray['vendors'] = erp_acct_get_accounting_people(
+            [ 'type' => 'vendor' ]
+        );
+        //print_r($returnArray);
+        return $returnArray;
+    }
+
+    function prepare_items()
+    {
+        global $wpdb;
+        $table_Product = $wpdb->prefix . 'erp_acct_products'; 
+        $per_page = 10; 
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+        $this->_column_headers = array($columns, $hidden, $sortable);
+        $this->process_bulk_action();
+        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_Product");
+        $paged = isset($_REQUEST['paged']) ? max(0, intval($_REQUEST['paged']) - 1) : 0;
+        $orderby = (isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns()))) ? $_REQUEST['orderby'] : 'name';
+        $order = (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array('asc', 'desc'))) ? $_REQUEST['order'] : 'asc';
+      
+        $this->getItems(ROWMATERIAL_PRODUCT_TYPE_ID, $orderby, $order, $per_page, $paged);
+
+        $this->set_pagination_args(array(
+            'total_items' => $total_items, 
+            'per_page' => $per_page,
+            'total_pages' => ceil($total_items / $per_page) 
+        ));
+    }
+
+    function getItems($productType = ROWMATERIAL_PRODUCT_TYPE_ID, $orderby="name", $order="ASC", $per_page="100", $paged="0")
+    {
+        global $wpdb;
+        $table_Product = $wpdb->prefix . 'erp_acct_products'; 
+        $sql = $wpdb->prepare("SELECT product.id, product.name, 
+        product.product_type_id, stock.quantity as stock, product.cost_price, product.sale_price, product.tax_cat_id, 
+        people.id AS vendor, CONCAT(people.first_name, ' ', people.last_name) AS vendor_name, 
+        cat.id AS category_id, cat.name AS cat_name, product_type.name AS product_type_name, 
+        product.created_at
+        FROM wp_erp_acct_products AS product 
+        LEFT JOIN wp_erp_peoples AS people ON product.vendor = people.id 
+        LEFT JOIN wp_erp_acct_product_categories AS cat ON product.category_id = cat.id 
+        LEFT JOIN wp_erp_acct_product_types AS product_type ON product.product_type_id = product_type.id 
+        LEFT JOIN wp_fgpt_productstock AS stock ON stock.prod_id = product.id 
+        WHERE product.product_type_id = %d
+        ORDER BY $orderby $order 
+        LIMIT %d OFFSET %d", $productType, $per_page, $paged);
+        $results = $wpdb->get_results($sql, ARRAY_A);
+        $this->items = $results;
+        return $results;
+    }
+
+}//class Product_List_Table END
 
 function fgpt_validate_product($item)
 {
@@ -363,7 +375,9 @@ function fgpt_languages()
 }
 add_action('init', 'fgpt_languages');
 
-function get_states_by_ajax_callback() {
+
+// START - list-product-prop.php 
+function getProducts_AjaxCallback() {
     $pid = $_POST['pid'];
     global $wpdb;
     $results = $wpdb->get_results($wpdb->prepare("SELECT pprod.id, pprod.name, pp.cost_price, pp.sale_price, pp.expiry_date
@@ -374,5 +388,31 @@ function get_states_by_ajax_callback() {
     echo json_encode($results);
     wp_die();
 }
-add_action('wp_ajax_get_states_by_ajax', 'get_states_by_ajax_callback');
-add_action('wp_ajax_nopriv_get_states_by_ajax', 'get_states_by_ajax_callback');
+add_action('wp_ajax_get_products_ajax', 'getProducts_AjaxCallback');
+add_action('wp_ajax_nopriv_get_products_ajax', 'getProducts_AjaxCallback');
+
+// END - list-product-prop.php 
+
+// START - inventory-status.php 
+function getProductTypes_AjaxCallback() {
+    $typeId = $_POST['typeid'];
+    //global $wpdb;
+    // $ results = $wpdb->get_results($wpdb->prepare("SELECT pprod.id, pprod.name, pp.cost_price, pp.sale_price, pp.expiry_date
+    // --     FROM wp_erp_acct_products as p 
+    // --     INNER JOIN wp_fgpt_productproperties pp on p.id = pp.parent_prod_id
+    // --     INNER JOIN wp_erp_acct_products pprod on pprod.id = pp.prod_id
+    // --     WHERE p.id = %d", $pid));
+        // product.id, product.name, 
+        // product.product_type_id, stock.quantity as stock, product.cost_price, product.sale_price, product.tax_cat_id, 
+        // people.id AS vendor, CONCAT(people.first_name, ' ', people.last_name) AS vendor_name, 
+        // cat.id AS category_id, cat.name AS cat_name, product_type.name AS product_type_name, product.created_at 
+        
+    $table = new Product_List_Table();
+    $results = $table->getItems($typeId);
+    echo json_encode($results);
+    wp_die();
+}
+add_action('wp_ajax_get_producttypes_ajax', 'getProductTypes_AjaxCallback');
+add_action('wp_ajax_nopriv_get_producttypes_ajax', 'getProductTypes_AjaxCallback');
+
+// END - list-product-prop.php 

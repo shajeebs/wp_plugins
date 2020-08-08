@@ -1,5 +1,5 @@
 <?php
-function fgpt_products_page_handler()
+function fgpt_rawmaterials_page_handler()
 {
     global $wpdb;
 
@@ -27,7 +27,6 @@ function fgpt_products_page_handler()
 </div>
 <?php
 }
-
 
 function fgpt_products_form_page_handler()
 {
