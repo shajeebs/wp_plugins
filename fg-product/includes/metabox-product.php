@@ -31,8 +31,8 @@ function fgpt_rawmaterials_page_handler()
 function fgpt_products_form_page_handler()
 {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'erp_acct_products'; 
-
+    $table_product = $wpdb->prefix . 'erp_acct_products'; 
+    $table = new Product_List_Table();
     $message = '';
     $notice = '';
 
@@ -46,55 +46,38 @@ function fgpt_products_form_page_handler()
         'cost_price'        => '',  
         'sale_price'        => '',   
         'created_at'        => date("Y-m-d"),
+        'stock_quantity'    => 0,   
     );
 
-
     if ( isset($_REQUEST['nonce']) && wp_verify_nonce($_REQUEST['nonce'], basename(__FILE__))) {
-        
+        print_r($_REQUEST);
+        print("<br>");
         $item = shortcode_atts($default, $_REQUEST);     
-
+        print_r($item);
+        print("<br>");
         $item_valid = fgpt_validate_product($item);
         if ($item_valid === true) {
-            if ($item['id'] == 0) {
-                $result = $wpdb->insert($table_name, $item);
-                $item['id'] = $wpdb->insert_id;
-                if ($result) {
-                    $message = __('Item was successfully saved', 'fgpt');
-                } else {
-                    $notice = __('There was an error while saving item', 'fgpt');
-                }
-            } else {
-                $result = $wpdb->update($table_name, $item, array('id' => $item['id']));
-                if ($result) {
-                    $message = __('Item was successfully updated', 'fgpt');
-                } else {
-                    $notice = __('There was an error while updating item', 'fgpt');
-                }
-            }
+            $table->saveItem($item, $message, $notice);
         } else {
-            
             $notice = $item_valid;
         }
     }
     else {
-        
         $item = $default;
         if (isset($_REQUEST['id'])) {
-            $item = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $_REQUEST['id']), ARRAY_A);
+            $item = $table->getItem($_REQUEST['id']);
             if (!$item) {
                 $item = $default;
                 $notice = __('Item not found', 'fgpt');
             }
         }
     }
-
     
-    add_meta_box('products_form_meta_box', __('Product data', 'fgpt'), 'fgpt_products_form_meta_box_handler', 'product', 'normal', 'default');
-
+    add_meta_box('products_form_meta_box', __('Raw Material Add/Update', 'fgpt'), 'fgpt_products_form_meta_box_handler', 'product', 'normal', 'default');
     ?>
 <div class="wrap">
     <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-    <h2><?php _e('Product', 'fgpt')?> <a class="add-new-h2"
+    <h2><?php _e('Row material', 'fgpt')?> <a class="add-new-h2"
                                 href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=products');?>"><?php _e('Back to list', 'fgpt')?></a>
     </h2>
 
@@ -107,8 +90,7 @@ function fgpt_products_form_page_handler()
 
     <form id="form" method="POST">
         <input type="hidden" name="nonce" value="<?php echo wp_create_nonce(basename(__FILE__))?>"/>
-        
-        <input type="hidden" name="id" value="<?php echo $item['id'] ?>"/>
+        <input type="hidden" name="id" value="<?php echo $item['prod_id'] ?>"/>
 
         <div class="metabox-holder" id="poststuff">
             <div id="post-body">
@@ -128,6 +110,7 @@ function fgpt_products_form_meta_box_handler($item)
 {
     $productListTable = new Product_List_Table();
     $dropdownData = $productListTable->getData();
+    print_r($item);
     ?>
 <tbody >
 	<div class="formdatabc">		
@@ -184,7 +167,12 @@ function fgpt_products_form_meta_box_handler($item)
         </p><p>	  
             <label for="sale_price"><?php _e('Sale Price:', 'fgpt')?></label><br>
 			<input id="sale_price" name="sale_price" type="number" value="<?php echo esc_attr($item['sale_price'])?>" required>
-		</p><p>	  
+		</p>
+        <p>	  
+            <label for="stock_quantity"><?php _e('Stock Quantity:', 'fgpt')?></label><br>
+			<input id="stock_quantity" name="stock_quantity" type="number" value="<?php echo esc_attr($item['stock_quantity'])?>" required>
+		</p>
+        <p>	  
             <label for="created_at"><?php _e('Created On:', 'fgpt')?></label><br>
 			<input id="created_at" name="created_at" type="date" value="<?php echo esc_attr($item['created_at'])?>">
 		</p>		
