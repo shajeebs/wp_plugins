@@ -14,22 +14,22 @@ jQuery(document).ready(function(){
                 jQuery("#expDate").val(datafilter.expiry_date);
             });
             jQuery(".add-row").click(function(){
-                var datafilter = jsonData.filter(el => el.id ==jQuery("#productName").val())[0];
+                var selectedItem = jQuery("#productName").val();
+                var datafilter = jsonData.filter(el => el.id == selectedItem)[0];
                 selectionList.push(datafilter);
-                var markup = "<tr><td><input type='checkbox' name='pid' value='" + datafilter.id + "'/><input type='hidden' name='productIds[]' value='"+ datafilter.id +"' /></td><td>" + datafilter.name + "</td><td>" + datafilter.cost_price + "</td><td>" + datafilter.sale_price + "</td><td>" + datafilter.expiry_date + "</td></tr>";
+                var markup = "<tr><td><input type='hidden' name='productIds[]' value='"+ datafilter.id +"' /></td><td>" + datafilter.name + "</td><td>" + datafilter.cost_price + "</td><td>" + datafilter.sale_price + "</td><td><input type='number' name='quantity[]' value='1' /></td><td>" + datafilter.expiry_date + "</td><td><a href='#' class='deleterow'>X</a></td></tr>";
                 jQuery("table tbody").append(markup);
+                jQuery("#productName option[value='" + selectedItem + "']").remove();
                 UpdateCost();
             });
         }
-        
-        // Find and remove selected table rows
-        jQuery(".delete-row").click(function(){
-            jQuery("table tbody").find('input[name="record"]').each(function(){
-            	if(jQuery(this).is(":checked")){
-                    jQuery(this).parents("tr").remove();
-                    UpdateCost();
-                }
-            });
+
+        jQuery('#tbProdProps').on('click','tr a',function(e){
+            e.preventDefault();
+            var pid = jQuery(this).parents('tr').find('input[name="productIds[]"]').val();
+            var datafilter = jsonData.filter(el => el.id == pid)[0];
+            jQuery("#productName").append(jQuery("<option />").val(datafilter.id).text(datafilter.name));
+            jQuery(this).parents('tr').remove();
         });
 
         function UpdateCost(){  

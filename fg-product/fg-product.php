@@ -107,10 +107,10 @@ function fgpt_admin_menu()
     add_menu_page(__('Special Products', 'fgpt'), __('Special Products', 'fgpt'), 'activate_plugins', 'products', 'fgpt_rawmaterials_page_handler');
     add_submenu_page('products', __('Row Materials', 'fgpt'), __('Row Materials', 'fgpt'), 'activate_plugins', 'products', 'fgpt_rawmaterials_page_handler');
     add_submenu_page('products', __('New Raw Material', 'fgpt'), __('New Raw Material', 'fgpt'), 'activate_plugins', 'products_form', 'fgpt_products_form_page_handler');
-    add_submenu_page('products', __('Inventory Status', 'fgpt'), __('Inventory Status', 'fgpt'), 'activate_plugins', 'inventory_status', 'fgpt_inventorystatus_page_handler');
     // add_submenu_page('products', __('Make Product', 'fgpt'), __('Make Product', 'fgpt'), 'activate_plugins', 'make_product_form', 'fgpt_makeProductFormPage_handler');
     add_submenu_page('products', __('Finished Products', 'fgpt'), __('Finished Products', 'fgpt'), 'activate_plugins', 'list_prop_form', 'fgpt_listProductProp_FormPage_handler');
-    add_submenu_page('products', __('New Finished Product', 'fgpt'), __('New Finished Product', 'fgpt'), 'activate_plugins', 'product_prop_form', 'fgpt_addProductProp_FormPage_handler');
+    add_submenu_page('products', __('Recipes', 'fgpt'), __('Recipes', 'fgpt'), 'activate_plugins', 'product_prop_form', 'fgpt_addProductProp_FormPage_handler');
+    add_submenu_page('products', __('Inventory Status', 'fgpt'), __('Inventory Status', 'fgpt'), 'activate_plugins', 'inventory_status', 'fgpt_inventorystatus_page_handler');
 }
 add_action('admin_menu', 'fgpt_admin_menu');
 
@@ -360,6 +360,53 @@ class Product_List_Table extends WP_List_Table
     }
 
     function saveItem($item, &$message, &$notice){
+        global $wpdb;
+        $table_product = $wpdb->prefix.'erp_acct_products'; 
+        $table_productstock = $wpdb->prefix.'fgpt_productstock'; 
+        if ($item['id'] == 0) {
+            $wpdb->query('START TRANSACTION');
+            $insertItem = $item;
+            unset($insertItem['stock_quantity']);
+            $result = $wpdb->insert($table_product, $insertItem);
+            $item['id'] = $wpdb->insert_id;
+            $stockResult = $wpdb->insert($table_productstock, array('prod_id' => $item['id'], 
+                                                                    'quantity'=> $item['stock_quantity'], 
+                                                                    'created_at' => date("Y-m-d")));
+            if($result || $stockResult) {
+                $wpdb->query('COMMIT'); // if you come here then well done
+                $message = __('Item was successfully saved', 'fgpt');
+            }
+            else {
+                $wpdb->query('ROLLBACK'); // // something went wrong, Rollback
+                $notice = __('There was an error while saving item', 'fgpt');
+            }
+        } 
+        else {
+            $updateItem = $item;
+            unset($updateItem['stock_quantity']);
+            print_r($item);
+            print("<br>");
+            $wpdb->query('START TRANSACTION');
+            $updateProductResult = $wpdb->update($table_product, $updateItem, array('id' => $updateItem['id']));
+            print("<br> Inserted prop: $updateProductResult <br>");
+            print("<br> Inserted ID: ".$item['id']." <br>");
+            $updateStockResult = $wpdb->update("wp_fgpt_productstock", 
+                                            array('quantity'=> $item['stock_quantity'],
+                                                  'updated_at' => date("Y-m-d")),
+                                            array('prod_id'=>$item['id']));
+            print("<br> Updated stock: $updateStockResult <br>");
+            if($updateProductResult || $updateStockResult) {
+                $wpdb->query('COMMIT'); // if you come here then well done
+                $message = __('Item was successfully updated', 'fgpt');
+            }
+            else {
+                $wpdb->query('ROLLBACK'); // something went wrong, Rollback
+                $notice = __('There was an error while updating item', 'fgpt');
+            }
+        }
+    }
+
+    function saveItemProperties($item, &$message, &$notice){
         global $wpdb;
         $table_product = $wpdb->prefix.'erp_acct_products'; 
         $table_productstock = $wpdb->prefix.'fgpt_productstock'; 

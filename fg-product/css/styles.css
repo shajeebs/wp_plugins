@@ -2,41 +2,29 @@
     width: 80%;
 }
 
-div#products_form_meta_box.postbox {
+.postbox {
     width: 60%;
+    border: 1px solid black;
+    -webkit-box-shadow: 2px 2px 5px 6px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+    -moz-box-shadow:    2px 2px 5px 6px #ccc;  /* Firefox 3.5 - 3.6 */
+    box-shadow:         2px 2px 5px 6px #ccc;  /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */
 }
 
-div.form2bc{
-	display:flex;
-}
-
-div.form3bc{
-	display:flex;
-}
-
-div.form2bc input {
-    width: 300px;
-    margin-right: 10px;
-}
-
-div.form3bc input {
-    width: 150px;
-    margin-right: 10px;
-}
-
-#addressbc {
-    width: 730px;
-}
-
-#notesbc {
-    width: 730px;
-}
-
-.formdatabc th {
-  background-color: #4CAF50;
+#tbProdProps th {
+  background-color: #f5bb6b;
   color: white;
-  height: 2px;
+  height: 1.5px;
+  font-weight: bold;
 }
+
+.deleterow{
+  background-color: #f5d9b2;
+  font-weight: bold;
+  display: block;
+  width: 15px;
+  text-align: center;
+}
+
 
 tr.outOfStock td {
     border: 1px solid #dde833;
@@ -47,4 +35,64 @@ tr.outOfStock td {
 tr.inStock  td {
     color: green;
     font-weight:normal;
+}
+
+.fullLength, .columnLayout input, .columnLayout select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.submitButton {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+/*
+input[type=submit]:hover {
+  background-color: #45a049;
+}*/
+
+.rawmaterials {
+    width: 95%;
+    height: 60px;
+    border: 1px solid DodgerBlue;
+    box-shadow: 2px 2px 5px 6px #ccc;  /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */
+    margin-bottom: 15px;
+    padding-left: 10px;
+    vertical-align: bottom;
+    background-color: #a9e4ab;
+}
+
+.rawmaterials input, #tbProdProps input[type='number'] {
+    height: 30px;
+    width: 90px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Create two equal columns that floats next to each other */
+.columnLayout {
+  float: left;
+  width: 50%;
+  padding: 10px;
+  height: 40%; /* Should be removed. Only for demonstration */
+}
+
+/* Clear floats after the columns */
+.rowLayout:after {
+  content: "";
+  display: table;
+  clear: both;
 }
