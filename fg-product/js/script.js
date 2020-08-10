@@ -17,7 +17,7 @@ jQuery(document).ready(function(){
                 var selectedItem = jQuery("#productName").val();
                 var datafilter = jsonData.filter(el => el.id == selectedItem)[0];
                 selectionList.push(datafilter);
-                var markup = "<tr><td><input type='hidden' name='productIds[]' value='"+ datafilter.id +"' /></td><td>" + datafilter.name + "</td><td>" + datafilter.cost_price + "</td><td>" + datafilter.sale_price + "</td><td><input type='number' name='quantity[]' value='1' /></td><td>" + datafilter.expiry_date + "</td><td><a href='#' class='deleterow'>X</a></td></tr>";
+                var markup = "<tr><td><input type='hidden' name='productIds[]' value='"+ datafilter.id +"' /></td><td>" + datafilter.name + "</td><td>" + datafilter.cost_price + "</td><td>" + datafilter.sale_price + "</td><td><input type='number' name='quantities[]' value='1' /></td><td>" + datafilter.expiry_date + "</td><td><a href='#' alt='Delete Row' class='deleterow'>X</a></td></tr>";
                 jQuery("table tbody").append(markup);
                 jQuery("#productName option[value='" + selectedItem + "']").remove();
                 UpdateCost();

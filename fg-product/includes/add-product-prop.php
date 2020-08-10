@@ -5,7 +5,7 @@ function fgpt_addProductProp_FormPage_handler()
     global $wpdb;
     $table_name = $wpdb->prefix . 'erp_acct_products'; 
     $table_ProductPropeties = $wpdb->prefix.'fgpt_productproperties';
-
+    $table = new Product_List_Table();
     $message = '';
     $notice = '';
 
@@ -26,63 +26,8 @@ function fgpt_addProductProp_FormPage_handler()
         $item = shortcode_atts($defaultProd, $_REQUEST);     
         $item_valid = fgpt_validate_product($item);
         if ($item_valid === true) {
-            if ($item['id'] == 0) {
-                //$message = __('Success..!!', 'fgpt');
-                $result = $wpdb->insert($table_name, $item);
-                $item['id'] = $wpdb->insert_id;
-                if ($result) {
-                    $message = __('Product was successfully saved', 'fgpt');
-
-                $projProp = array();
-                $productListTable = new Product_List_Table();
-                $jsonData = $productListTable->getRowMaterials();
-                //print("jsonData Array <br>");
-                $jsonData = json_decode($jsonData, true);
-                foreach ($_REQUEST['productIds'] as $pid) {
-                    foreach ($jsonData as $key => $jsonVal) {
-                        //print("<br>JSON: pid:". $value['id']."  -".$value['name']);
-                        if($jsonVal['id'] == $pid){
-                            $wpdb->query('START TRANSACTION');
-                            $stockQuantity = $wpdb->get_var("SELECT quantity FROM wp_fgpt_productstock WHERE prod_id = ".$jsonVal['id']);
-                            //print("Current Stock: $stockQuantity <br>");
-                            $stockQuantity = $stockQuantity - 1;
-                            $result = $wpdb->insert($table_ProductPropeties, array(
-                                "parent_prod_id" => $item['id'],
-                                "prod_id" => $jsonVal['id'],
-                                "cost_price" => $jsonVal['cost_price'],
-                                "sale_price" => $jsonVal['sale_price'],
-                                "expiry_date" => $jsonVal['expiry_date'],
-                                "created_at" => date("Y-m-d")
-                            ));
-                            //print("<br> Inserted properties: $result <br>");
-                            $updateResult = $wpdb->update("wp_fgpt_productstock", array('quantity'=> $stockQuantity), array('prod_id'=>$jsonVal['id']));
-                            //print("<br> Updated stock: $updateResult <br>");
-                            if($result && $updateResult) {
-                                $wpdb->query('COMMIT'); // if you come here then well done
-                            }
-                            else {
-                                $wpdb->query('ROLLBACK'); // // something went wrong, Rollback
-                            }
-                        }
-                    }
-                    
-                }
-
-                if ($result) 
-                        $message = __('Product and properties was successfully saved', 'fgpt');
-                    else 
-                        $notice = __('There was an error while saving Product properties', 'fgpt');
-                } else {
-                    $notice = __('There was an error while saving Product', 'fgpt');
-                }
-            } else {
-                $result = $wpdb->update($table_name, $item, array('id' => $item['id']));
-                if ($result) {
-                    $message = __('Item was successfully updated', 'fgpt');
-                } else {
-                    $notice = __('There was an error while updating item', 'fgpt');
-                }
-            }
+            $prodPropQuantities = array_combine($_REQUEST['productIds'], $_REQUEST['quantities']);
+            $table->saveItemProperties($item, $prodPropQuantities, $message, $notice);
         } else {
             $notice = $item_valid;
         }

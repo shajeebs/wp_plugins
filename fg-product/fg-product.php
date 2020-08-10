@@ -60,6 +60,7 @@ function fgpt_install()
         prod_id     INT NOT NULL,
         cost_price decimal(20,2) NOT NULL,
         sale_price	decimal(20,2) NOT NULL,
+        quantity INT NOT NULL,
         expiry_date date NOT NULL,
         created_at date NOT NULL,
         CONSTRAINT fk_prd_product_id
@@ -406,49 +407,71 @@ class Product_List_Table extends WP_List_Table
         }
     }
 
-    function saveItemProperties($item, &$message, &$notice){
-        global $wpdb;
-        $table_product = $wpdb->prefix.'erp_acct_products'; 
-        $table_productstock = $wpdb->prefix.'fgpt_productstock'; 
-        if ($item['id'] == 0) {
+    function saveItemProperties($item, $prodPropQuantities, &$message, &$notice){
+            global $wpdb;
+            $table_product = $wpdb->prefix.'erp_acct_products'; 
+            $table_productstock = $wpdb->prefix.'fgpt_productstock'; 
+            $table_ProductPropeties = $wpdb->prefix.'fgpt_productproperties';
+            if ($item['id'] == 0) {
+            //$message = __('Success..!!', 'fgpt');
             $wpdb->query('START TRANSACTION');
             $insertItem = $item;
             unset($insertItem['stock_quantity']);
-            $result = $wpdb->insert($table_product, $insertItem);
+            $resultProd = $wpdb->insert($table_product, $insertItem);
             $item['id'] = $wpdb->insert_id;
-            $stockResult = $wpdb->insert($table_productstock, array('prod_id' => $item['id'], 
+            print("<br> Added new Product Pid: ".$item['id'].": Name:".$item['name'].", Res:$resultProd <br>");
+            if ($resultProd) {
+                //$message = __('Product was successfully saved', 'fgpt');
+
+                $projProp = array();
+                //$productListTable = new Product_List_Table();
+                $jsonRowMaterials = $this->getRowMaterials();
+                //print("jsonRowMaterials Array <br>");
+                $jsonRowMaterials = json_decode($jsonRowMaterials, true);
+                foreach ($prodPropQuantities as $pid => $qty) {
+                    foreach ($jsonRowMaterials as $key => $jsonVal) {
+                        //print("<br>JSON: pid:". $jsonVal['id']."  -".$jsonVal['name']);
+                        if($jsonVal['id'] == $pid){
+                            $stockQuantity = $wpdb->get_var("SELECT quantity FROM wp_fgpt_productstock WHERE prod_id = ".$jsonVal['id']);
+                            print("Product properties current Stock: Pid: $pid: Qty:$stockQuantity <br>");
+                            $stockQuantity = $stockQuantity - $qty;
+                            $resultProdProp = $wpdb->insert($table_ProductPropeties, array(
+                                "parent_prod_id" => $item['id'],
+                                "prod_id" => $jsonVal['id'],
+                                "cost_price" => $jsonVal['cost_price'],
+                                "sale_price" => $jsonVal['sale_price'],
+                                "quantity" => $qty,
+                                "expiry_date" => $jsonVal['expiry_date'],
+                                "created_at" => date("Y-m-d")
+                            ));
+                            print("<br> Added new Product Properties: $wpdb->insert_id: Name:".$jsonVal['name'].", Res:$resultProd <br>");
+                            $resultPropStock = $wpdb->update($table_productstock, array('quantity'=> $stockQuantity), array('prod_id'=>$pid));
+                            print("<br> Updated product properties stock Pid: $pid: Qty:$stockQuantity, Res:$resultPropStock <br>");
+                        }
+                    }
+                }
+                //New Product Stock Added
+                $resultProdStock = $wpdb->insert($table_productstock, array('prod_id' => $item['id'], 
                                                                     'quantity'=> $item['stock_quantity'], 
                                                                     'created_at' => date("Y-m-d")));
-            if($result || $stockResult) {
-                $wpdb->query('COMMIT'); // if you come here then well done
-                $message = __('Item was successfully saved', 'fgpt');
-            }
+
+                print("<br> New product ptock added: $resultProdStock <br>");
+                if($resultProd && $resultProdStock && $resultProdProp && $resultPropStock) {
+                    $wpdb->query('COMMIT'); // if you come here then well done
+                    $message = __('Product and properties was successfully saved', 'fgpt');
+                }
+                else {
+                    $wpdb->query('ROLLBACK'); // // something went wrong, Rollback
+                    $notice = __('There was an error while saving Product properties', 'fgpt');
+                }
+            } 
             else {
-                $wpdb->query('ROLLBACK'); // // something went wrong, Rollback
-                $notice = __('There was an error while saving item', 'fgpt');
-            }
-        } 
-        else {
-            $updateItem = $item;
-            unset($updateItem['stock_quantity']);
-            print_r($item);
-            print("<br>");
-            $wpdb->query('START TRANSACTION');
-            $updateProductResult = $wpdb->update($table_product, $updateItem, array('id' => $updateItem['id']));
-            print("<br> Inserted prop: $updateProductResult <br>");
-            print("<br> Inserted ID: ".$item['id']." <br>");
-            $updateStockResult = $wpdb->update("wp_fgpt_productstock", 
-                                            array('quantity'=> $item['stock_quantity'],
-                                                  'updated_at' => date("Y-m-d")),
-                                            array('prod_id'=>$item['id']));
-            print("<br> Updated stock: $updateStockResult <br>");
-            if($updateProductResult || $updateStockResult) {
-                $wpdb->query('COMMIT'); // if you come here then well done
-                $message = __('Item was successfully updated', 'fgpt');
-            }
-            else {
-                $wpdb->query('ROLLBACK'); // something went wrong, Rollback
-                $notice = __('There was an error while updating item', 'fgpt');
+                $result = $wpdb->update($table_name, $item, array('id' => $item['id']));
+                if ($result) {
+                    $message = __('Item was successfully updated', 'fgpt');
+                } else {
+                    $notice = __('There was an error while updating item', 'fgpt');
+                }
             }
         }
     }
