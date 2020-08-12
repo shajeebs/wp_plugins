@@ -25,15 +25,27 @@ require plugin_dir_path( __FILE__ ) . 'includes/add-product-prop.php';
 require plugin_dir_path( __FILE__ ) . 'includes/list-product-prop.php';
 require plugin_dir_path( __FILE__ ) . 'includes/inventory-status.php';
 
-function fgpt_custom_admin_styles() {
-    wp_enqueue_style('custom-styles', plugins_url('/css/styles.css', __FILE__ ));
-}
-add_action('admin_enqueue_scripts', 'fgpt_custom_admin_styles');
+function fgpt_fgproduct_styles() {
+    // wp_enqueue_style('jquerysctipttop', 'https://www.jqueryscript.net/css/jquerysctipttop.css', array(),  '1.1.1', true);
+    // wp_enqueue_style('fontawesome', 'https://use.fontawesome.com/releases/v5.3.1/css/all.css', array(),  '5.3.1', true);
+    // wp_enqueue_style('bootstrap', 'https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.1.3/darkly/bootstrap.min.css', array(),  '5.3.1', true);
 
-function fgpt_custom_scripts() {
-    wp_enqueue_script('custom-scripts', plugins_url('/js/script.js', __FILE__ ), false, null, true);
+    wp_enqueue_style('fgproduct-styles', plugins_url('/css/styles.css', __FILE__ ));
 }
-add_action('admin_enqueue_scripts', 'fgpt_custom_scripts' );
+add_action('admin_enqueue_scripts', 'fgpt_fgproduct_styles');
+// add_action('wp_enqueue_scripts', 'fgpt_fgproduct_styles');
+
+function fgpt_fgproduct_scripts() {
+    // wp_enqueue_script('jquery-cdn', 'https://code.jquery.com/jquery-3.3.1.slim.min.js', array(),  '3.3.1', true);
+    // wp_enqueue_script('popper', 'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js', array('jquery-cdn'),  '1.14.3', true);
+    // wp_enqueue_script('bootstrap', 'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js', array(),  '4.1.3', true);
+    // wp_enqueue_script('jquery-cdn', 'https://code.jquery.com/jquery-3.3.1.slim.min.js', array(),  '3.3.1', true);
+    
+    wp_enqueue_script('fgproduct-scripts', plugins_url('/js/script.js', __FILE__ ), false, null, true);
+    // wp_enqueue_script('fgproduct-bootstable', plugins_url('/js/bootstable.js', __FILE__ ), false, null, true);
+}
+add_action('admin_enqueue_scripts', 'fgpt_fgproduct_scripts' );
+// add_action('wp_enqueue_scripts', 'fgpt_fgproduct_scripts');
 
 function fgpt_plugin_load_textdomain() {
     load_plugin_textdomain( 'fgpt', false, basename( dirname( __FILE__ ) ) . '/languages' ); 
@@ -500,7 +512,6 @@ function fgpt_languages()
     load_plugin_textdomain('fgpt', false, dirname(plugin_basename(__FILE__)));
 }
 add_action('init', 'fgpt_languages');
-
 
 // START - list-product-prop.php 
 function getProducts_AjaxCallback() {

@@ -98,7 +98,7 @@ function fgpt_AddProductProp_Handler($item)
                 <input type="text" id="expDate" placeholder="Expiry Date">
                 <input type="button" class="add-row" value="Add">
             </div>
-            <table id="tbProdProps" class="wp-list-table widefat fixed striped products">
+            <table id="tbProdProps" class="wp-list-table widefat fixed striped products tableStyle">
                 <thead><tr><th class="check-column"></th><th>Row Material</th><th>Cost Price</th><th>Sale Price</th><th>Quantity</th><th>Expiry Date</th><th>Delete</th></tr></thead>
                 <tbody></tbody>
             </table>
