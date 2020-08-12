@@ -14,7 +14,7 @@ function fgpt_rawmaterials_page_handler()
 <div class="wrap">
 
     <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-    <h2><?php _e('Products', 'fgpt')?> <a class="add-new-h2"
+    <h2><?php _e('Raw Materials List', 'fgpt')?> <a class="add-new-h2"
                                  href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=products_form');?>"><?php _e('Add new', 'fgpt')?></a>
     </h2>
     <?php echo $message; ?>
@@ -77,7 +77,7 @@ function fgpt_products_form_page_handler()
     ?>
 <div class="wrap">
     <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-    <h2><?php _e('Row material', 'fgpt')?> <a class="add-new-h2"
+    <h2><?php _e('Raw material', 'fgpt')?> <a class="add-new-h2"
                                 href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=products');?>"><?php _e('Back to list', 'fgpt')?></a>
     </h2>
 

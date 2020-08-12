@@ -100,8 +100,12 @@ function fgpt_install_data(){
     global $wpdb;
     $table_Product = $wpdb->prefix . 'erp_acct_products'; 
     $table_ProductStock = $wpdb->prefix . 'fgpt_productstock';
+// INSERT INTO wp_fgpt_productstock(`prod_id`, `quantity`)
+// SELECT id, 0 FROM wp_erp_acct_products  
+//      WHERE id NOT in (SELECT prod_id FROM wp_fgpt_productstock) 
+
     $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_Product 
-     WHERE NOT EXISTS (SELECT `id` FROM $table_ProductStock) 
+     WHERE id NOT IN (SELECT `prod_id` FROM $table_ProductStock) 
      AND `product_type_id` in (%d, %d)", ROWMATERIAL_PRODUCT_TYPE_ID, FP_PRODUCT_TYPE_ID), ARRAY_A);
 
     foreach ($results as $val) {
@@ -368,7 +372,7 @@ class Product_List_Table extends WP_List_Table
         $item = $wpdb->get_row($wpdb->prepare("SELECT *, s.quantity as stock_quantity 
         FROM wp_erp_acct_products as p 
         INNER JOIN wp_fgpt_productstock s on p.id=s.prod_id 
-        WHERE p.id=%d", $_REQUEST['id']), ARRAY_A);
+        WHERE p.id=%d", $id), ARRAY_A);
         return $item;
     }
 
@@ -533,17 +537,6 @@ add_action('wp_ajax_nopriv_get_products_ajax', 'getProducts_AjaxCallback');
 // START - inventory-status.php 
 function getProductTypes_AjaxCallback() {
     $typeId = $_POST['typeid'];
-    //global $wpdb;
-    // $ results = $wpdb->get_results($wpdb->prepare("SELECT pprod.id, pprod.name, pp.cost_price, pp.sale_price, pp.expiry_date
-    // --     FROM wp_erp_acct_products as p 
-    // --     INNER JOIN wp_fgpt_productproperties pp on p.id = pp.parent_prod_id
-    // --     INNER JOIN wp_erp_acct_products pprod on pprod.id = pp.prod_id
-    // --     WHERE p.id = %d", $pid));
-        // product.id, product.name, 
-        // product.product_type_id, stock.quantity as stock, product.cost_price, product.sale_price, product.tax_cat_id, 
-        // people.id AS vendor, CONCAT(people.first_name, ' ', people.last_name) AS vendor_name, 
-        // cat.id AS category_id, cat.name AS cat_name, product_type.name AS product_type_name, product.created_at 
-        
     $table = new Product_List_Table();
     $results = $table->getItems($typeId);
     echo json_encode($results);
@@ -551,5 +544,28 @@ function getProductTypes_AjaxCallback() {
 }
 add_action('wp_ajax_get_producttypes_ajax', 'getProductTypes_AjaxCallback');
 add_action('wp_ajax_nopriv_get_producttypes_ajax', 'getProductTypes_AjaxCallback');
+
+function updateStock_AjaxCallback() {
+    $pid = $_POST['pid'];
+    $qty = $_POST['qty'];   
+    global $wpdb;
+    $updateStockResult = $wpdb->update("wp_fgpt_productstock", 
+                                        array('quantity' => $qty,
+                                        'updated_at' => date("Y-m-d")),
+                                        array('prod_id' => $pid));
+
+    $table = new Product_List_Table();
+    $result = $table->getItem($pid);
+    //print_r($result);
+    $updateStockResult = array('pid' => $pid,
+                'qty'  => $result['stock_quantity'],
+                'date'  => date("Y-m-d"),
+                'rowsaffected' => $updateStockResult
+                );
+    echo json_encode($updateStockResult);
+    wp_die();
+}
+add_action('wp_ajax_update_stock_ajax', 'updateStock_AjaxCallback');
+add_action('wp_ajax_nopriv_update_stock_ajax', 'updateStock_AjaxCallback');
 
 // END - list-product-prop.php 

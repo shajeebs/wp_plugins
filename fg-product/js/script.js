@@ -77,10 +77,12 @@ jQuery(document).ready(function(){
                         var stock = parseInt(prd.stock);
                         var stockStatus = (stock > 0 ? "In Stock": "Out Of Stock");
                         var rowStyle = (stock > 0 ? "inStock": "outOfStock");
-                        var markup = "<tr id='" + prd.id + "' class='"+rowStyle+"'><td>" + prd.name + "</td><td>" + prd.product_type_name 
-                        + "</td><td class='stockTd'>" + prd.stock + "<input type='number' class='stockVal' style='width: 90px; display: none;'></td><td>" + stockStatus 
+                        var markup = "<tr id='" + prd.id + "' class='" + rowStyle + "'><td>" + prd.name 
+                        + "</td><td>" + prd.product_type_name 
+                        + "</td><td class='stockTd'>" + prd.stock 
+                        + "<input type='number' class='stockVal' value='0' style='width: 90px; display: none;'></td><td class='stockStatus'>" + stockStatus 
                         + `</td><td class='stockAction'>
-                        <a href='#' alt='Add Stock' class='addStock' >Add Stock</a>
+                        <a href='#' alt='Update Stock' class='updateStock' >Update Stock</a>
                         <input type="button" id="btnSaveStock" value="Save" onclick="saveStock(this)" style="display: none;">
                         <input type="button" id="btnCancel" value="Cancel" onclick="cancelStock(this)" style="display: none;">
                         </td></tr>`;
@@ -91,7 +93,6 @@ jQuery(document).ready(function(){
         });
 
         jQuery('#tbProdTypes').on('click','tr a',function(e){
-            //e.preventDefault();
             jQuery(this).hide();
             jQuery(this).parents('tr').find('#btnSaveStock').show();
             jQuery(this).parents('tr').find('#btnCancel').show();
@@ -102,18 +103,39 @@ jQuery(document).ready(function(){
     });    
 
     saveStock = (btnSave) => {
-        var pid = jQuery(btnSave).parents('tr').attr('id');
-        var stockInput = jQuery(btnSave).closest('tr').find('.stockVal');
-        var stock = stockInput.val();
-        alert("Product Id: " + pid + ", Stock updated with the value : " + stock);
-        cancelStock(btnSave);
-        jQuery(btnSave).closest('tr').find('.stockTd').html(stock);
-        jQuery(btnSave).closest('tr').find('.stockTd').append(stockInput);
+        var row = jQuery(btnSave).parents('tr');
+        var pid = row.attr('id');
+        var stock = row.find('.stockVal').val();
+        if(stock == 0){
+            alert("Please provide valid stock..!")
+            return;
+        }
+        var data = {'action': 'update_stock_ajax','pid': pid,'qty': stock }
+         jQuery.post("admin-ajax.php", data, function(response) {
+             var resp = JSON.parse(response);
+            if(resp.rowsaffected == 1) {
+                cancelStock(btnSave);
+                row.find('.stockTd').html(resp.qty);
+                row.find('.stockStatus').html("In Stock");
+                row.find('.stockAction').html("");
+                //row.find('.stockTd').append(stockInput);
+                if(row.hasClass('outOfStock'))
+                    row.removeClass('outOfStock');
+
+                if(!row.hasClass('outOfStock'))
+                    row.addClass('inStock');
+            }
+            else {
+                alert("Stock was not updated. Please contact support.")
+            }
+        });   
+
+
     }
 
     cancelStock = (btnCancel) => {
         jQuery(btnCancel).parents('tr').find('.stockVal').hide();
-        jQuery(btnCancel).closest('td').find('.addStock').show();
+        jQuery(btnCancel).closest('td').find('.updateStock').show();
         jQuery(btnCancel).closest('td').find('#btnSaveStock').hide();
         jQuery(btnCancel).closest('td').find('#btnCancel').hide();
     }
