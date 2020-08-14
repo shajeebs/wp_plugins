@@ -100,9 +100,6 @@ function fgpt_install_data(){
     global $wpdb;
     $table_Product = $wpdb->prefix . 'erp_acct_products'; 
     $table_ProductStock = $wpdb->prefix . 'fgpt_productstock';
-// INSERT INTO wp_fgpt_productstock(`prod_id`, `quantity`)
-// SELECT id, 0 FROM wp_erp_acct_products  
-//      WHERE id NOT in (SELECT prod_id FROM wp_fgpt_productstock) 
 
     $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_Product 
      WHERE id NOT IN (SELECT `prod_id` FROM $table_ProductStock) 
@@ -111,7 +108,7 @@ function fgpt_install_data(){
     foreach ($results as $val) {
             $result = $wpdb->insert($table_ProductStock, array(
                 "prod_id" => $val['id'],
-                "quantity" => 3000,
+                "quantity" => 0,
                 "created_at" => date("Y-m-d")
             ));
     }
@@ -303,6 +300,10 @@ class Product_List_Table extends WP_List_Table
             'taxCats'  => [],
             'vendors'  => [],
         ];
+require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
+$args['number'] = -1;
+
+        $returnArray['prods'] = erp_acct_get_all_products();
 
         require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
         $returnArray['prodTypes'] = erp_acct_get_product_types();

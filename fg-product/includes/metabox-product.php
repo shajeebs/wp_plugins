@@ -149,7 +149,8 @@ function fgpt_products_form_meta_box_handler($item)
             </p>
             <p>
                 <label for="vendor"><?php _e('Vendor:', 'fgpt')?></label><br>	
-                <?php $preItem = esc_attr($item['vendor']);
+                <?php  array_unshift($dropdownData['vendors'], array('id' => 0, 'first_name' => 'Self', 'last_name' => ''));
+                $preItem = esc_attr($item['vendor']);
                 echo '<select name="vendor" name="vendor">';
                 foreach($dropdownData['vendors'] as $vendor){ 
                     $id = $vendor->id;
