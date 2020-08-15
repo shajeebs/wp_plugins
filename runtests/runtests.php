@@ -30,7 +30,6 @@ function runTestsAdminPage() {
             print('vendorProds');
             print_r($vendorProds);
             ?>
-        
       </div>
       <div class="columnLayout" style="background-color:#f1caca;">
         <p></p>
