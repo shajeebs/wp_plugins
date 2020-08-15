@@ -68,7 +68,7 @@ jQuery(document).ready(function(){
         // START - inventory-status.php 
         jQuery("#productTypes").change(function(){
             if(this.value != '') {
-                var data = {'action': 'get_producttypes_ajax','typeid': this.value }
+                var data = {'action': 'get_productsbytype_ajax','typeid': this.value }
                 jQuery.post("admin-ajax.php", data, function(response) {
                     //alert(response);
                     jQuery("#tbProdTypes tbody").empty();

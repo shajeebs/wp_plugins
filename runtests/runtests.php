@@ -21,20 +21,111 @@ function runTestsAdminPage() {
     <h2>Run Tests</h2>
     <h4>This module is used for testing different functionalities</h4>
     <div class="rowLayout">		
-      <div class="columnLayout" style="background-color:#74cfd27a;">
-        <p>Test erp_acct_get_vendor_products()</p>
-           <?php 
-            require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
-            $returnArray['prodTypes'] = erp_acct_get_product_types();
-            $vendorProds = erp_acct_get_vendor_products(array('count' => false, 'number'=>-1));
-            print('vendorProds');
-            print_r($vendorProds);
-            ?>
+      <div class="columnLayout" style="border:1px solid blue;  background-color:#74cfd27a;">
+        <b>Test Products(Sales)</b> <ul><?php  GetAllSalesProducts(); ?></ul><br>
+        <b>Test ProductTypes</b> <ul><?php  GetProductTypes(); ?></ul>
       </div>
-      <div class="columnLayout" style="background-color:#f1caca;">
-        <p></p>
+      <div class="columnLayout" style="border:1px solid green;  background-color:#f1caca;">
+        <b>Test Vendor Products(Purchases)</b> <ul><?php  GetVendorProducts(); ?></ul>
+      </div>
+      <div class="columnLayout" style="border:1px solid blue;  background-color:#74cfd27a;">
+        <b>Raw Materials - JSON(Products)</b> <ul><?php  GetRawMaterials(); ?></ul><br>
+      </div>
+      <div class="columnLayout" style="border:1px solid green;  background-color:#f1caca;">
+        <b>Get FinishedProducts (Products)</b> <ul><?php  getFinishedProducts(); ?></ul><br>
+        <b>Get Products by Type(AJAX) Inventory Module - JSON(Products)</b> <ul><?php  GetProductsByType(); ?></ul>
       </div>
     </div>
   </div>
   <?php
-}?>
+}
+
+function GetProductsByType(){
+  require_once(ABSPATH . 'wp-content\plugins\fg-product\fg-product.php');
+  $productListTable = new Product_List_Table();
+  $productTypes = $productListTable->getProductTypes();
+  //print_r($productTypes);
+  foreach($productTypes as $type){
+    $products = $productListTable->getItems($type['id']);
+    print("<u>Product Type : ".$type['id']."|  ".$type['name']."|  Count:".count($products)."</u><br>");
+    foreach($products as $prod){
+      echo "<li>".$prod['vendor']."-".$prod['vendor_name'].":".$prod['id']." - ".$prod['name']."</li>";
+      // print_r($prod);
+      // print('<br>');
+    }
+  }
+}
+
+function GetProductTypes(){
+  require_once(ABSPATH . 'wp-content\plugins\fg-product\fg-product.php');
+  $productListTable = new Product_List_Table();
+  $productTypes = $productListTable->getProductTypes();
+  print(' Finished Products : <br>');
+  //print_r($productTypes);
+  foreach($productTypes as $type){
+    //echo "<li>".$prod['vendor']."-".$prod['vendor_name'].":".$prod['id']." - ".$prod['name']."</li>";
+    print_r($type);
+    print('<br>');
+  }
+}
+
+function getFinishedProducts(){
+  require_once(ABSPATH . 'wp-content\plugins\fg-product\fg-product.php');
+  $productListTable = new Product_List_Table();
+  $products = $productListTable->getFinishedProducts();
+  print(' Finished Products : <br>');
+  //print_r($products);
+  foreach($products as $prod){
+    //echo "<li>".$prod['vendor']."-".$prod['vendor_name'].":".$prod['id']." - ".$prod['name']."</li>";
+    print_r($prod);
+    print('<br>');
+  }
+}
+
+function GetRawMaterials(){
+  require_once(ABSPATH . 'wp-content\plugins\fg-product\fg-product.php');
+  //$vendorProds = getRowMaterials(array( 'count' => false, 'number'=>-1));
+  $productListTable = new Product_List_Table();
+  $products = $productListTable->getRowMaterials();
+  print(' Sales Products : <br>');
+  print_r($products);
+  // foreach($products as $prod){
+  //   //echo "<li>".$prod['vendor']."-".$prod['vendor_name'].":".$prod['id']." - ".$prod['name']."</li>";
+  //   ///echo "<li>".$prod->id."-".$prod->first_name."   :".$prod->id." - ".$prod->name."</li>";
+  //       print_r($prod);
+  //       print('<br>');
+  // }
+}
+
+function GetAllSalesProducts(){
+  require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
+  $vendorProds = erp_acct_get_all_products(array( 'count' => false, 'number'=>-1));
+  print(' Sales Products : <br>');
+  //print_r($vendorProds);
+  foreach($vendorProds as $prod){
+    echo "<li>".$prod['vendor']."-".$prod['vendor_name'].":".$prod['id']." - ".$prod['name']."</li>";
+  }
+}
+
+function GetVendorProducts(){
+  $req = array( 'type' => 'vendor', 'count' => false, 'number'=>-1);
+    //require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\api\class-rest-api-vendors.php');
+    //$vendorCtrl = new \WeDevs\ERP\Accounting\API\Vendors_Controller();
+  require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\people.php');
+  $vendors = erp_acct_get_accounting_people();
+  require_once(ABSPATH . 'wp-content\plugins\erp\modules\accounting\includes\functions\products.php');
+  foreach($vendors as $key => $vndr){
+    if($vndr->types[0] == 'vendor'){
+        print('<u>Vendor ->   Id:'.$vndr->id.' Name:'.$vndr->first_name.'</u><br>');
+        //print_r($vndr);
+        $vendorProds = erp_acct_get_vendor_products(array('vendor' => $vndr->id, 'count' => false, 'number'=>-1));
+        //print_r($vendorProds);
+        foreach($vendorProds as $prod){
+          echo "<li>".$vndr->id."-".$vndr->first_name."   :".$prod['id']." - ".$prod['name']."</li>";
+        }
+        print('<br>');
+    }
+  }
+}
+
+?>

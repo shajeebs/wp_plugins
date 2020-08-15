@@ -545,15 +545,15 @@ add_action('wp_ajax_nopriv_get_products_ajax', 'getProducts_AjaxCallback');
 // END - list-product-prop.php 
 
 // START - inventory-status.php 
-function getProductTypes_AjaxCallback() {
+function getProductsByType_AjaxCallback() {
     $typeId = $_POST['typeid'];
     $table = new Product_List_Table();
     $results = $table->getItems($typeId);
     echo json_encode($results);
     wp_die();
 }
-add_action('wp_ajax_get_producttypes_ajax', 'getProductTypes_AjaxCallback');
-add_action('wp_ajax_nopriv_get_producttypes_ajax', 'getProductTypes_AjaxCallback');
+add_action('wp_ajax_get_productsbytype_ajax', 'getProductsByType_AjaxCallback');
+add_action('wp_ajax_nopriv_get_productsbytype_ajax', 'getProductsByType_AjaxCallback');
 
 function updateStock_AjaxCallback() {
     $pid = $_POST['pid'];
