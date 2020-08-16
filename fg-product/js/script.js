@@ -75,17 +75,16 @@ jQuery(document).ready(function(){
                     jQuery.each(JSON.parse(response), function(i, prd) {
                         //alert(item.name);
                         var stock = parseInt(prd.stock);
+                        var stockAction = (prd.vendor > 0 ? "" : `<a href='#' alt='Update Stock' class='updateStock' >Update Stock</a>
+                        <input type="button" id="btnSaveStock" value="Save" onclick="saveStock(this)" style="display: none;">
+                        <input type="button" id="btnCancel" value="Cancel" onclick="cancelStock(this)" style="display: none;">`);
                         var stockStatus = (stock > 0 ? "In Stock": "Out Of Stock");
                         var rowStyle = (stock > 0 ? "inStock": "outOfStock");
                         var markup = "<tr id='" + prd.id + "' class='" + rowStyle + "'><td>" + prd.name 
                         + "</td><td>" + prd.product_type_name 
                         + "</td><td class='stockTd'>" + prd.stock 
                         + "<input type='number' class='stockVal' value='0' style='width: 90px; display: none;'></td><td class='stockStatus'>" + stockStatus 
-                        + `</td><td class='stockAction'>
-                        <a href='#' alt='Update Stock' class='updateStock' >Update Stock</a>
-                        <input type="button" id="btnSaveStock" value="Save" onclick="saveStock(this)" style="display: none;">
-                        <input type="button" id="btnCancel" value="Cancel" onclick="cancelStock(this)" style="display: none;">
-                        </td></tr>`;
+                        + "</td><td class='stockAction'>"+ stockAction +"</td></tr>";
                         jQuery("#tbProdTypes tbody").append(markup);
                     });
                 });

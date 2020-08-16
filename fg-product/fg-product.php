@@ -264,7 +264,7 @@ class Product_List_Table extends WP_List_Table
         $paged = 0;
         global $wpdb;
         $rowMaterials = $wpdb->get_results($wpdb->prepare("SELECT id, name, cost_price, 
-            sale_price, created_at, DATE_ADD(created_at, INTERVAL 10 DAY) as expiry_date 
+            sale_price, vendor, created_at, DATE_ADD(created_at, INTERVAL 10 DAY) as expiry_date 
             FROM wp_erp_acct_products where product_type_id=3 
             LIMIT %d OFFSET %d", $per_page, $paged), ARRAY_A);
 
