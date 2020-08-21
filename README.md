@@ -49,3 +49,16 @@ word press custom plugins
     get_vendor_products()
     erp_acct_get_vendor_products()
     319: Query updated to get only Raw Material products
+
+    Print
+    ------
+    \erp\modules\accounting\includes\classes\class-assets.php
+    $acct_url   = admin_url( 'admin.php' ) . '?page=erp-accounting#/';
+    'erp_acct_url'       => $acct_url
+
+
+
+
+    http://localhost/wordpressv1/wp-json
+    http://localhost/wordpressv1/wp-json/fgvuetest/v1/students
+    $this->container['rest']    = new \WeDevs\ERP\Accounting\API\REST_API();
