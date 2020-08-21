@@ -1,6 +1,6 @@
 <?php
  
-class ClassApiController extends WP_REST_Controller {
+class ClassApiStudents extends WP_REST_Controller {
 
   /**
    * Register the routes for the objects of the controller.

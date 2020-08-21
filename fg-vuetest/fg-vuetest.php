@@ -48,8 +48,8 @@ register_activation_hook(__FILE__, 'vjpt_install_data');
 
 //Register the API routes for the objects of the controller.
 add_action( 'rest_api_init', function () {
-    require_once(plugin_dir_path(__FILE__).'/class-api-controller.php');
-    $ctrl = new ClassApiController();
+    require_once(plugin_dir_path(__FILE__).'/class-api-students.php');
+    $ctrl = new ClassApiStudents();
     $ctrl->register_routes();
 });
 
