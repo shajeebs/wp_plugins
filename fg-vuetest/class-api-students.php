@@ -1,5 +1,5 @@
 <?php
- 
+ //https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/
 class ClassApiStudents extends WP_REST_Controller {
 
   /**

@@ -40,8 +40,6 @@ function vjpt_install_data(){
 
     foreach ($data as $stud) {
             $result = $wpdb->insert($table_Student, $stud);
-            // print("Result: $result:     Name-". $stud['name'].", age:".$stud['age'].", email:".$stud['email'].", place:".$stud['place']);
-            // print("<br>");
     }
 }
 register_activation_hook(__FILE__, 'vjpt_install_data');
@@ -53,11 +51,22 @@ add_action( 'rest_api_init', function () {
     $ctrl->register_routes();
 });
 
-function enqueue_vuejs_scripts(){
-    wp_enqueue_script('vue', 'https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js', [], '2.5.17');
+function vjpt_enqueue_vuejs_styles() {
+    wp_enqueue_style('bootstrap-vue', '//unpkg.com/bootstrap/dist/css/bootstrap.min.css');
+    wp_enqueue_style('bootstrap-vue-min', '//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css');
+
+    //wp_enqueue_style('fgproduct-styles', plugins_url('/css/styles.css', __FILE__ ));
+}
+add_action('admin_enqueue_scripts', 'vjpt_enqueue_vuejs_styles');
+
+function vjpt_enqueue_vuejs_scripts(){
+    wp_enqueue_script('polyfill', '//polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver', [], '');
+    wp_enqueue_script('vue', '//unpkg.com/vue@latest/dist/vue.min.js', [], '');
+    wp_enqueue_script('bootstrap-vue', '//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js', [], '');
+    wp_enqueue_script('bootstrap-vue-icons', '//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js', [], '');
     wp_enqueue_script('student-details', plugin_dir_url( __FILE__ ) . 'vueapp.js', [], '1.0', true);
 }
-add_action('admin_enqueue_scripts', 'enqueue_vuejs_scripts' );
+add_action('admin_enqueue_scripts', 'vjpt_enqueue_vuejs_scripts' );
 
 //[students] - checks for shortcode in wordpress and renders this div mount
 function handle_shortcode() {
