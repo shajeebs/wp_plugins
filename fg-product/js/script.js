@@ -75,7 +75,7 @@ jQuery(document).ready(function(){
                     jQuery.each(JSON.parse(response), function(i, prd) {
                         //alert(item.name);
                         var stock = parseInt(prd.stock);
-                        var stockAction = (prd.vendor > 0 ? "" : `<a href='#' alt='Update Stock' class='updateStock' >Update Stock</a>
+                        var stockAction = (prd.vendor > 0 ? (stock == 0 ? "Purchase stock": "") : `<a href='#' alt='Update Stock' class='updateStock' >Update Stock</a>
                         <input type="button" id="btnSaveStock" value="Save" onclick="saveStock(this)" style="display: none;">
                         <input type="button" id="btnCancel" value="Cancel" onclick="cancelStock(this)" style="display: none;">`);
                         var stockStatus = (stock > 0 ? "In Stock": "Out Of Stock");
